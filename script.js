@@ -2,6 +2,7 @@ let size = 6;
 let fullBoard = [];
 let board = [];
 let clues = [];
+let initialBoard = [];
 
 function startGame(s) {
   size = s;
@@ -21,7 +22,6 @@ function newGame() {
   board = maskBoard(fullBoard, Math.floor(size*size*0.4));
   initialBoard = board.map(row => row.slice()); // copia profunda
   drawBoard();
-  updateCounters();
 }
 
 function generateFullBoard(size) {
@@ -198,6 +198,7 @@ function drawBoard() {
   }
 }
 
+
 // Cambia el valor cíclicamente  null -> 0 -> 1 -> null
 function cycleValue(r, c, cell) {
   if (isGivenCell(r, c)) return; // No cambia si es fija original
@@ -205,9 +206,9 @@ function cycleValue(r, c, cell) {
   let cur = board[r][c];
   let nv = cur === null ? 0 : cur === 0 ? 1 : null;
   board[r][c] = nv;
-  cell.textContent = nv === null ? '' : nv;
-  updateCounters();
+  drawBoard(); // Redibuja el tablero completo, incluyendo contadores
 }
+
 
 
 // Comprueba la solución, marca errores pero NO bloquea las celdas correctas
