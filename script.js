@@ -50,6 +50,7 @@ function backToLevelMenu() {
   document.getElementById('timer').style.display = 'none';
 }
 
+
 function selectLevel(s) {
   size = s;
   document.getElementById('menu-level').style.display = 'none';
@@ -354,7 +355,6 @@ function checkSolution() {
 
       if (board[r][c] === fullBoard[r][c]) {
         cell.classList.remove('error');
-        // NO añadimos fixed, para que siga editable
       } else {
         cell.classList.add('error');
         ok = false;
@@ -363,7 +363,9 @@ function checkSolution() {
   }
 
   if (ok) {
-    alert('🎉 ¡Correcto! Has resuelto el tablero.');
+    // En vez de alert, mostrar pantalla final
+    document.getElementById('game').style.display = 'none';
+    document.getElementById('menu-finish').style.display = 'block';
   } else {
     alert('❌ Hay errores o celdas vacías.');
   }
@@ -410,22 +412,31 @@ function checkUniqueRowsCols(b){
 }
 
 
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('btn-easy').onclick = () => selectLevel(6);
-  document.getElementById('btn-medium').onclick = () => selectLevel(8);
-  document.getElementById('btn-hard').onclick = () => selectLevel(10);
+document.getElementById('btn-replay-yes').onclick = () => {
+  document.getElementById('menu-finish').style.display = 'none';
+  document.getElementById('game').style.display = 'block';
+  newGame(); // genera nuevo tablero
+  if (useTimer) {
+    timerSeconds = 0;
+    document.getElementById('timer').style.display = 'block';
+    updateTimerText();
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      timerSeconds++;
+      updateTimerText();
+    }, 1000);
+  } else {
+    document.getElementById('timer').style.display = 'none';
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+  }
+};
 
-  document.getElementById('btn-timer-yes').onclick = () => {
-    useTimer = true;
-    startGameConfirmed();
-  };
-  document.getElementById('btn-timer-no').onclick = () => {
-    useTimer = false;
-    startGameConfirmed();
-  };
-  document.getElementById('btn-timer-back').onclick = () => {
-    document.getElementById('menu-timer').style.display = 'none';
-    document.getElementById('menu-level').style.display = 'block';
-  };
-});
+document.getElementById('btn-replay-no').onclick = () => {
+  document.getElementById('menu-finish').style.display = 'none';
+  backToLevelMenu(); // vuelve al menú nivel y oculta timer y juego
+};
+
 
