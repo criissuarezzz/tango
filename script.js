@@ -19,6 +19,7 @@ function newGame() {
   fullBoard = generateFullBoard(size);
   clues = generateTangoClues(fullBoard, Math.floor(size*1.5));
   board = maskBoard(fullBoard, Math.floor(size*size*0.4));
+  initialBoard = board.map(row => row.slice()); // copia profunda
   drawBoard();
   updateCounters();
 }
@@ -124,35 +125,16 @@ function generateTangoClues(b,count){
   return res;
 }
 
-function cycleValue(r, c) {
-  // No editar celdas fijas
-  if (fullBoard[r][c] !== null && board[r][c] === fullBoard[r][c]) return;
-
-  let cur = board[r][c];
-  let nv;
-
-  if (cur === null || cur === undefined) {
-    nv = 0;
-  } else if (cur === 0) {
-    nv = 1;
-  } else {
-    nv = null;
-  }
-
-  board[r][c] = nv;
-  drawBoard(); // Redibuja para actualizar visual y contadores
-}
 
 
 
-f// Función que detecta si una celda es fija original (pista o dado por el puzzle)
+
+// Función que detecta si una celda es fija original (pista o dado por el puzzle)
 function isGivenCell(r, c) {
-  // Por ejemplo, si clues contiene pistas para esta celda, la consideramos fija
-  return clues.some(cl => cl[0] === r && cl[1] === c);
+  return initialBoard[r][c] !== null;
 }
 
 
-// Dibuja el tablero con recuentos y celdas
 function drawBoard() {
   const boardDiv = document.getElementById('board');
   boardDiv.innerHTML = '';
@@ -192,12 +174,12 @@ function drawBoard() {
       cell.setAttribute('data-r', r);
       cell.setAttribute('data-c', c);
 
-      if (fullBoard[r][c] !== null && board[r][c] === fullBoard[r][c] && isGivenCell(r, c)) {
-        // Celda fija original (gris oscuro)
+      // Solo las celdas dadas al principio son fijas
+      if (isGivenCell(r, c)) {
         cell.textContent = board[r][c];
         cell.classList.add('fixed');
+        cell.onclick = null;
       } else {
-        // Celda editable
         cell.textContent = board[r][c] === null ? '' : board[r][c];
         cell.classList.remove('fixed');
         cell.onclick = () => cycleValue(r, c, cell);
@@ -215,7 +197,6 @@ function drawBoard() {
     }
   }
 }
-
 
 // Cambia el valor cíclicamente  null -> 0 -> 1 -> null
 function cycleValue(r, c, cell) {
