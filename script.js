@@ -124,22 +124,25 @@ function generateTangoClues(b,count){
   return res;
 }
 
-function cycleValue(r, c, cell) {
-  // Si es celda fija, no hacer nada
-  if (board[r][c] !== null && fullBoard[r][c] !== null) return;
+function cycleValue(r, c) {
+  // No editar celdas fijas
+  if (fullBoard[r][c] !== null && board[r][c] === fullBoard[r][c]) return;
 
   let cur = board[r][c];
-  // Ciclo: null -> 0 -> 1 -> null ...
-  let nv = null;
-  if (cur === null) nv = 0;
-  else if (cur === 0) nv = 1;
-  else if (cur === 1) nv = null;
+  let nv;
+
+  if (cur === null || cur === undefined) {
+    nv = 0;
+  } else if (cur === 0) {
+    nv = 1;
+  } else {
+    nv = null;
+  }
 
   board[r][c] = nv;
-  cell.textContent = nv === null ? '' : nv;
-
-  updateCounters();
+  drawBoard(); // Redibuja para actualizar visual y contadores
 }
+
 
 
 function drawBoard() {
