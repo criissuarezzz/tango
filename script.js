@@ -411,18 +411,26 @@ function checkUniqueRowsCols(b){
   return true;
 }
 
-
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('btn-easy').onclick = () => selectLevel(6);
-  document.getElementById('btn-medium').onclick = () => selectLevel(8);
-  document.getElementById('btn-hard').onclick = () => selectLevel(10);
-  document.getElementById('btn-timer-yes').onclick = () => {
+  const btnEasy = document.getElementById('btn-easy');
+  const btnMedium = document.getElementById('btn-medium');
+  const btnHard = document.getElementById('btn-hard');
+
+  const btnTimerYes = document.getElementById('btn-timer-yes');
+  const btnTimerNo = document.getElementById('btn-timer-no');
+  const btnTimerBack = document.getElementById('btn-timer-back');
+
+  if (btnEasy) btnEasy.onclick = () => selectLevel(6);
+  if (btnMedium) btnMedium.onclick = () => selectLevel(8);
+  if (btnHard) btnHard.onclick = () => selectLevel(10);
+
+  if (btnTimerYes) btnTimerYes.onclick = () => {
     useTimer = true;
     startGameConfirmed();
   };
-  document.getElementById('btn-timer-no').onclick = () => {
+  if (btnTimerNo) btnTimerNo.onclick = () => {
     useTimer = false;
     startGameConfirmed();
   };
-  document.getElementById('btn-timer-back').onclick = () => backToLevelMenu();
+  if (btnTimerBack) btnTimerBack.onclick = () => backToLevelMenu();
 });
