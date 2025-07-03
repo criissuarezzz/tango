@@ -83,3 +83,13 @@ button {
   font-size: 0.9em;
   color: #6c757d;
 }
+
+
+.counter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8em;
+  color: #6c757d;
+}
+
