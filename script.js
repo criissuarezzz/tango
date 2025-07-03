@@ -412,31 +412,17 @@ function checkUniqueRowsCols(b){
 }
 
 
-document.getElementById('btn-replay-yes').onclick = () => {
-  document.getElementById('menu-finish').style.display = 'none';
-  document.getElementById('game').style.display = 'block';
-  newGame(); // genera nuevo tablero
-  if (useTimer) {
-    timerSeconds = 0;
-    document.getElementById('timer').style.display = 'block';
-    updateTimerText();
-    if (timerInterval) clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
-      timerSeconds++;
-      updateTimerText();
-    }, 1000);
-  } else {
-    document.getElementById('timer').style.display = 'none';
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      timerInterval = null;
-    }
-  }
-};
-
-document.getElementById('btn-replay-no').onclick = () => {
-  document.getElementById('menu-finish').style.display = 'none';
-  backToLevelMenu(); // vuelve al menú nivel y oculta timer y juego
-};
-
-
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('btn-easy').onclick = () => selectLevel(6);
+  document.getElementById('btn-medium').onclick = () => selectLevel(8);
+  document.getElementById('btn-hard').onclick = () => selectLevel(10);
+  document.getElementById('btn-timer-yes').onclick = () => {
+    useTimer = true;
+    startGameConfirmed();
+  };
+  document.getElementById('btn-timer-no').onclick = () => {
+    useTimer = false;
+    startGameConfirmed();
+  };
+  document.getElementById('btn-timer-back').onclick = () => backToLevelMenu();
+});
