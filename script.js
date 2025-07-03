@@ -57,18 +57,46 @@ function generateTangoClues(b,count){
 }
 
 function drawBoard(){
-  const boardDiv=document.getElementById('board');
-  boardDiv.innerHTML='';
-  boardDiv.style.gridTemplateColumns=`repeat(${size},40px)`;
+  const boardDiv = document.getElementById('board');
+  boardDiv.innerHTML = '';
+  boardDiv.style.gridTemplateColumns = `repeat(${size+1}, 40px)`; // +1 para la columna de recuento
+
+  // Primera celda vacía (esquina)
+  let emptyCell = document.createElement('div');
+  emptyCell.className = 'counter';
+  boardDiv.appendChild(emptyCell);
+
+  // Recuento columnas arriba
+  for(let c=0; c<size; c++){
+    let col=board.map(r=>r[c]);
+    let z=col.filter(v=>v===0).length, o=col.filter(v=>v===1).length;
+    let counter=document.createElement('div');
+    counter.className='counter';
+    counter.textContent=`0:${z} 1:${o}`;
+    boardDiv.appendChild(counter);
+  }
+
+  // Filas
   for(let r=0;r<size;r++){
+    // Recuento fila al inicio
+    let row=board[r];
+    let z=row.filter(v=>v===0).length, o=row.filter(v=>v===1).length;
+    let counter=document.createElement('div');
+    counter.className='counter';
+    counter.textContent=`0:${z} 1:${o}`;
+    boardDiv.appendChild(counter);
+
     for(let c=0;c<size;c++){
       let cell=document.createElement('div');
       cell.className='cell';
-      if(board[r][c]!=null){
+      if(clues.some(cl=>cl[0]==r && cl[1]==c)){
         cell.textContent=board[r][c];
         cell.classList.add('fixed');
+      } else {
+        cell.textContent=board[r][c]==null?'':board[r][c];
+        cell.onclick=()=>cycleValue(r,c,cell);
       }
-      cell.onclick=()=>cycleValue(r,c,cell);
+
       // pistas
       clues.filter(cl=>cl[0]==r && cl[1]==c).forEach(cl=>{
         let hint=document.createElement('div');
@@ -76,13 +104,15 @@ function drawBoard(){
         hint.textContent=cl[3];
         cell.appendChild(hint);
       });
+
       boardDiv.appendChild(cell);
     }
   }
 }
 
+
 function cycleValue(r,c,cell){
-  if(fullBoard[r][c]!=null) return;
+  if(clues.some(cl=>cl[0]==r && cl[1]==c)) return;
   let cur=board[r][c];
   let nv=cur==null?0:cur==0?1:null;
   board[r][c]=nv;
@@ -90,15 +120,7 @@ function cycleValue(r,c,cell){
   updateCounters();
 }
 
-function updateCounters(){
-  const counters=document.getElementById('counters');
-  counters.innerHTML='';
-  for(let r=0;r<size;r++){
-    let row=board[r];
-    let z=row.filter(v=>v===0).length, o=row.filter(v=>v===1).length;
-    counters.innerHTML += `Fila ${r+1}: 0=${z} 1=${o}<br>`;
-  }
-}
+
 
 function checkSolution(){
   let ok=true;
