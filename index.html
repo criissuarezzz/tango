@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Binairo Tango Web</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="menu">
+    <h1>BINAIRO TANGO</h1>
+    <button id="btn-easy">Fácil (6x6)</button>
+    <button id="btn-medium">Medio (8x8)</button>
+    <button id="btn-hard">Difícil (10x10)</button>
+  </div>
+
+  <div id="game" style="display: none;">
+    <div id="controls">
+      <button onclick="showHint()">💡 Pista</button>
+      <button onclick="checkSolution()">✅ Comprobar</button>
+      <button onclick="backToMenu()">🏠 Menú</button>
+    </div>
+    <div id="board"></div>
+    <div id="counters"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
