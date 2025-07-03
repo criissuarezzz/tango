@@ -3,41 +3,67 @@ let fullBoard = [];
 let board = [];
 let clues = [];
 let initialBoard = [];
-let timerInterval;
-let seconds = 0;
-let timerActive = false;
+let timerInterval = null;
+let timerSeconds = 0;
+let useTimer = false;
 
-function startGame(s) {
-  size = s;
-  // Preguntar si activar cronómetro
-  const useTimer = confirm('¿Quieres activar el cronómetro?');
-
-  document.getElementById('menu').style.display = 'none';
+// Inicia el juego cuando el usuario confirma nivel y opción de cronómetro
+function startGameConfirmed() {
+  document.getElementById('menu-timer').style.display = 'none';
   document.getElementById('game').style.display = 'block';
 
+  timerSeconds = 0;
   newGame();
 
   if (useTimer) {
-    startTimer();
+    document.getElementById('timer').style.display = 'block';
+    updateTimerText();
+    timerInterval = setInterval(() => {
+      timerSeconds++;
+      updateTimerText();
+    }, 1000);
   } else {
-    stopTimer();
-    hideTimer();
+    document.getElementById('timer').style.display = 'none';
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
   }
 }
 
+function updateTimerText() {
+  let min = Math.floor(timerSeconds / 60);
+  let sec = timerSeconds % 60;
+  document.getElementById('timer').textContent = `Tiempo: ${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+}
 
-function backToMenu() {
-  document.getElementById('menu').style.display = 'block';
+// Volver al menú de selección de nivel
+function backToLevelMenu() {
   document.getElementById('game').style.display = 'none';
+  document.getElementById('menu-timer').style.display = 'none';
+  document.getElementById('menu-level').style.display = 'block';
+
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  document.getElementById('timer').style.display = 'none';
+}
+
+function selectLevel(s) {
+  size = s;
+  document.getElementById('menu-level').style.display = 'none';
+  document.getElementById('menu-timer').style.display = 'block';
 }
 
 function newGame() {
   fullBoard = generateFullBoard(size);
-  clues = generateTangoClues(fullBoard, Math.floor(size*1.5));
-  board = maskBoard(fullBoard, Math.floor(size*size*0.4));
-  initialBoard = board.map(row => row.slice()); // copia profunda
+  clues = generateTangoClues(fullBoard, Math.floor(size * 1.5));
+  board = maskBoard(fullBoard, Math.floor(size * size * 0.4));
+  initialBoard = board.map(row => row.slice());
   drawBoard();
 }
+
 
 function generateFullBoard(size) {
   let maxTries = 500; // para evitar bucles infinitos
@@ -141,7 +167,43 @@ function generateTangoClues(b,count){
 }
 
 
+function startGameConfirmed() {
+  document.getElementById('menu-timer').style.display = 'none';
+  document.getElementById('game').style.display = 'block';
+  newGame();
 
+  if (useTimer) {
+    timerSeconds = 0;
+    document.getElementById('timer').style.display = 'block';
+    updateTimerText();
+    timerInterval = setInterval(() => {
+      timerSeconds++;
+      updateTimerText();
+    }, 1000);
+  } else {
+    document.getElementById('timer').style.display = 'none';
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+  }
+}
+
+function updateTimerText() {
+  let min = Math.floor(timerSeconds / 60);
+  let sec = timerSeconds % 60;
+  document.getElementById('timer').textContent = `Tiempo: ${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+}
+
+function backToMenu() {
+  document.getElementById('game').style.display = 'none';
+  document.getElementById('menu-level').style.display = 'block';
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  document.getElementById('timer').style.display = 'none';
+}
 
 function startTimer() {
   seconds = 0;
@@ -349,8 +411,21 @@ function checkUniqueRowsCols(b){
 
 
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('btn-easy').onclick = () => startGame(6);
-  document.getElementById('btn-medium').onclick = () => startGame(8);
-  document.getElementById('btn-hard').onclick = () => startGame(10);
+  document.getElementById('btn-easy').onclick = () => selectLevel(6);
+  document.getElementById('btn-medium').onclick = () => selectLevel(8);
+  document.getElementById('btn-hard').onclick = () => selectLevel(10);
+
+  document.getElementById('btn-timer-yes').onclick = () => {
+    useTimer = true;
+    startGameConfirmed();
+  };
+  document.getElementById('btn-timer-no').onclick = () => {
+    useTimer = false;
+    startGameConfirmed();
+  };
+  document.getElementById('btn-timer-back').onclick = () => {
+    document.getElementById('menu-timer').style.display = 'none';
+    document.getElementById('menu-level').style.display = 'block';
+  };
 });
 
