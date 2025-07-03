@@ -145,17 +145,25 @@ function cycleValue(r, c) {
 
 
 
+f// Función que detecta si una celda es fija original (pista o dado por el puzzle)
+function isGivenCell(r, c) {
+  // Por ejemplo, si clues contiene pistas para esta celda, la consideramos fija
+  return clues.some(cl => cl[0] === r && cl[1] === c);
+}
+
+
+// Dibuja el tablero con recuentos y celdas
 function drawBoard() {
   const boardDiv = document.getElementById('board');
   boardDiv.innerHTML = '';
-  boardDiv.style.gridTemplateColumns = `repeat(${size + 1}, 40px)`;
+  boardDiv.style.gridTemplateColumns = `repeat(${size + 1}, 40px)`; // +1 para columna contador
 
   // Esquina vacía arriba a la izquierda
   let emptyCell = document.createElement('div');
   emptyCell.className = 'counter';
   boardDiv.appendChild(emptyCell);
 
-  // Recuento de columnas arriba
+  // Contadores columnas arriba
   for (let c = 0; c < size; c++) {
     let col = board.map(r => r[c]);
     let zeros = col.filter(v => v === 0).length;
@@ -166,9 +174,9 @@ function drawBoard() {
     boardDiv.appendChild(counter);
   }
 
-  // Filas con recuento al inicio
+  // Filas con contadores y celdas
   for (let r = 0; r < size; r++) {
-    // Recuento fila a la izquierda
+    // Contador fila a la izquierda
     let row = board[r];
     let zeros = row.filter(v => v === 0).length;
     let ones = row.filter(v => v === 1).length;
@@ -181,22 +189,21 @@ function drawBoard() {
     for (let c = 0; c < size; c++) {
       let cell = document.createElement('div');
       cell.className = 'cell';
-
-      // Si es celda fija (original del puzzle)
-      if (fullBoard[r][c] !== null && board[r][c] === fullBoard[r][c]) {
-        cell.textContent = board[r][c];
-        cell.classList.add('fixed'); // gris oscuro en CSS
-      } else {
-        cell.textContent = board[r][c] === null ? '' : board[r][c];
-        cell.classList.remove('fixed'); // gris claro en CSS
-        cell.onclick = () => cycleValue(r, c);
-      }
-
-      // Añadir data atributos para selección futura
       cell.setAttribute('data-r', r);
       cell.setAttribute('data-c', c);
 
-      // Añadir pistas (clues) si las hay en esa celda
+      if (fullBoard[r][c] !== null && board[r][c] === fullBoard[r][c] && isGivenCell(r, c)) {
+        // Celda fija original (gris oscuro)
+        cell.textContent = board[r][c];
+        cell.classList.add('fixed');
+      } else {
+        // Celda editable
+        cell.textContent = board[r][c] === null ? '' : board[r][c];
+        cell.classList.remove('fixed');
+        cell.onclick = () => cycleValue(r, c, cell);
+      }
+
+      // Añadir pistas (clues) si hay
       clues.filter(cl => cl[0] === r && cl[1] === c).forEach(cl => {
         let hint = document.createElement('div');
         hint.className = 'hint ' + cl[2];
@@ -210,22 +217,19 @@ function drawBoard() {
 }
 
 
-function cycleValue(r, c) {
-  // Solo permitir cambio si no es fijo (no gris oscuro)
-  if (board[r][c] === fullBoard[r][c] && fullBoard[r][c] !== null) return;
+// Cambia el valor cíclicamente  null -> 0 -> 1 -> null
+function cycleValue(r, c, cell) {
+  if (isGivenCell(r, c)) return; // No cambia si es fija original
 
-  if (board[r][c] === null) {
-    board[r][c] = 0;
-  } else if (board[r][c] === 0) {
-    board[r][c] = 1;
-  } else if (board[r][c] === 1) {
-    board[r][c] = null;
-  }
-
-  drawBoard(); // Redibuja para reflejar el cambio
+  let cur = board[r][c];
+  let nv = cur === null ? 0 : cur === 0 ? 1 : null;
+  board[r][c] = nv;
+  cell.textContent = nv === null ? '' : nv;
+  updateCounters();
 }
 
 
+// Comprueba la solución, marca errores pero NO bloquea las celdas correctas
 function checkSolution() {
   let ok = true;
   for (let r = 0; r < size; r++) {
@@ -234,16 +238,15 @@ function checkSolution() {
 
       if (board[r][c] === null) {
         cell.classList.remove('error');
-        cell.classList.remove('fixed');
-        ok = false; // Aún no está completado
+        ok = false; // tablero incompleto
         continue;
       }
 
       if (board[r][c] === fullBoard[r][c]) {
         cell.classList.remove('error');
-        cell.classList.add('fixed'); // Bloquea la celda
+        // NO añadimos fixed, para que siga editable
       } else {
-        cell.classList.add('error'); // Marca error
+        cell.classList.add('error');
         ok = false;
       }
     }
@@ -255,6 +258,7 @@ function checkSolution() {
     alert('❌ Hay errores o celdas vacías.');
   }
 }
+
 
 
 function showHint(){
