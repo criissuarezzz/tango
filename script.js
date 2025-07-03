@@ -124,10 +124,11 @@ function generateTangoClues(b,count){
   return res;
 }
 
-function drawBoard(){
+// Actualiza los contadores de filas y columnas en el tablero
+function drawBoard() {
   const boardDiv = document.getElementById('board');
   boardDiv.innerHTML = '';
-  boardDiv.style.gridTemplateColumns = `repeat(${size + 1}, 40px)`; // +1 para recuento filas
+  boardDiv.style.gridTemplateColumns = `repeat(${size + 1}, 40px)`;
 
   // Esquina vacía arriba a la izquierda
   let emptyCell = document.createElement('div');
@@ -135,7 +136,7 @@ function drawBoard(){
   boardDiv.appendChild(emptyCell);
 
   // Recuento de columnas arriba
-  for(let c = 0; c < size; c++){
+  for (let c = 0; c < size; c++) {
     let col = board.map(r => r[c]);
     let zeros = col.filter(v => v === 0).length;
     let ones = col.filter(v => v === 1).length;
@@ -146,7 +147,7 @@ function drawBoard(){
   }
 
   // Filas con recuento al inicio
-  for(let r = 0; r < size; r++){
+  for (let r = 0; r < size; r++) {
     // Recuento fila a la izquierda
     let row = board[r];
     let zeros = row.filter(v => v === 0).length;
@@ -157,18 +158,17 @@ function drawBoard(){
     boardDiv.appendChild(counter);
 
     // Celdas
-    for(let c = 0; c < size; c++){
+    for (let c = 0; c < size; c++) {
       let cell = document.createElement('div');
       cell.className = 'cell';
 
-      // Si es celda fija (board[r][c] no es null)
-      if(board[r][c] !== null){
+      // Si es celda fija (original del puzzle)
+      if (fullBoard[r][c] !== null && board[r][c] === fullBoard[r][c]) {
         cell.textContent = board[r][c];
-        cell.classList.add('fixed');
+        cell.classList.add('fixed'); // gris oscuro en CSS
       } else {
-        // Editable: sin texto inicial
-        cell.textContent = '';
-        // Permitir clic para cambiar valor
+        cell.textContent = board[r][c] === null ? '' : board[r][c];
+        cell.classList.remove('fixed'); // gris claro en CSS
         cell.onclick = () => cycleValue(r, c, cell);
       }
 
@@ -184,6 +184,22 @@ function drawBoard(){
     }
   }
 }
+
+// Corrige la función para alternar el valor de una celda editable
+function cycleValue(r, c, cell) {
+  // Solo permite editar si la celda no es fija
+  if (fullBoard[r][c] !== null && board[r][c] === fullBoard[r][c]) return;
+  let cur = board[r][c];
+  let nv = cur === null ? 0 : cur === 0 ? 1 : null;
+  board[r][c] = nv;
+  cell.textContent = nv === null ? '' : nv;
+  drawBoard(); // Redibuja todo el tablero para actualizar contadores y celdas
+}
+
+// Elimina la función updateCounters si solo usas drawBoard para refrescar todo
+
+// Opcional: Si quieres mantener updateCounters para solo actualizar los contadores y no redibujar todo:
+
 
 
 
