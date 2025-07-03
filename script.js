@@ -127,49 +127,56 @@ function generateTangoClues(b,count){
 function drawBoard(){
   const boardDiv = document.getElementById('board');
   boardDiv.innerHTML = '';
-  boardDiv.style.gridTemplateColumns = `repeat(${size+1}, 40px)`; // +1 para la columna de recuento
+  boardDiv.style.gridTemplateColumns = `repeat(${size + 1}, 40px)`; // +1 para recuento filas
 
-  // Primera celda vacía (esquina)
+  // Esquina vacía arriba a la izquierda
   let emptyCell = document.createElement('div');
   emptyCell.className = 'counter';
   boardDiv.appendChild(emptyCell);
 
-  // Recuento columnas arriba
-  for(let c=0; c<size; c++){
-    let col=board.map(r=>r[c]);
-    let z=col.filter(v=>v===0).length, o=col.filter(v=>v===1).length;
-    let counter=document.createElement('div');
-    counter.className='counter';
-    counter.textContent=`0:${z} 1:${o}`;
+  // Recuento de columnas arriba
+  for(let c = 0; c < size; c++){
+    let col = board.map(r => r[c]);
+    let zeros = col.filter(v => v === 0).length;
+    let ones = col.filter(v => v === 1).length;
+    let counter = document.createElement('div');
+    counter.className = 'counter';
+    counter.textContent = `0:${zeros} 1:${ones}`;
     boardDiv.appendChild(counter);
   }
 
-  // Filas
-  for(let r=0;r<size;r++){
-    // Recuento fila al inicio
-    let row=board[r];
-    let z=row.filter(v=>v===0).length, o=row.filter(v=>v===1).length;
-    let counter=document.createElement('div');
-    counter.className='counter';
-    counter.textContent=`0:${z} 1:${o}`;
+  // Filas con recuento al inicio
+  for(let r = 0; r < size; r++){
+    // Recuento fila a la izquierda
+    let row = board[r];
+    let zeros = row.filter(v => v === 0).length;
+    let ones = row.filter(v => v === 1).length;
+    let counter = document.createElement('div');
+    counter.className = 'counter';
+    counter.textContent = `0:${zeros} 1:${ones}`;
     boardDiv.appendChild(counter);
 
-    for(let c=0;c<size;c++){
-      let cell=document.createElement('div');
-      cell.className='cell';
-      if(clues.some(cl=>cl[0]==r && cl[1]==c)){
-        cell.textContent=board[r][c];
+    // Celdas
+    for(let c = 0; c < size; c++){
+      let cell = document.createElement('div');
+      cell.className = 'cell';
+
+      // Si es celda fija (board[r][c] no es null)
+      if(board[r][c] !== null){
+        cell.textContent = board[r][c];
         cell.classList.add('fixed');
       } else {
-        cell.textContent=board[r][c]==null?'':board[r][c];
-        cell.onclick=()=>cycleValue(r,c,cell);
+        // Editable: sin texto inicial
+        cell.textContent = '';
+        // Permitir clic para cambiar valor
+        cell.onclick = () => cycleValue(r, c, cell);
       }
 
-      // pistas
-      clues.filter(cl=>cl[0]==r && cl[1]==c).forEach(cl=>{
-        let hint=document.createElement('div');
-        hint.className='hint '+cl[2];
-        hint.textContent=cl[3];
+      // Añadir pistas (clues) si las hay en esa celda
+      clues.filter(cl => cl[0] === r && cl[1] === c).forEach(cl => {
+        let hint = document.createElement('div');
+        hint.className = 'hint ' + cl[2];
+        hint.textContent = cl[3];
         cell.appendChild(hint);
       });
 
@@ -179,8 +186,9 @@ function drawBoard(){
 }
 
 
+
 function cycleValue(r,c,cell){
-  if(clues.some(cl=>cl[0]==r && cl[1]==c)) return;
+  if(board[r][c] != null) return;  // Si la celda tiene valor visible (fija), no editar
   let cur=board[r][c];
   let nv=cur==null?0:cur==0?1:null;
   board[r][c]=nv;
