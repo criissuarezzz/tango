@@ -192,6 +192,10 @@ function drawBoard() {
         cell.onclick = () => cycleValue(r, c);
       }
 
+      // Añadir data atributos para selección futura
+      cell.setAttribute('data-r', r);
+      cell.setAttribute('data-c', c);
+
       // Añadir pistas (clues) si las hay en esa celda
       clues.filter(cl => cl[0] === r && cl[1] === c).forEach(cl => {
         let hint = document.createElement('div');
@@ -206,21 +210,52 @@ function drawBoard() {
 }
 
 
+function cycleValue(r, c) {
+  // Solo permitir cambio si no es fijo (no gris oscuro)
+  if (board[r][c] === fullBoard[r][c] && fullBoard[r][c] !== null) return;
 
-function checkSolution(){
-  let ok=true;
-  document.querySelectorAll('.cell').forEach((cell,i)=>{
-    let r=Math.floor(i/size), c=i%size;
-    if(board[r][c]!=fullBoard[r][c]){
-      cell.classList.add('error');
-      ok=false;
-    } else {
-      cell.classList.remove('error');
-    }
-  });
-  if(ok) alert('🎉 ¡Correcto! Has resuelto el tablero.');
-  else alert('❌ Hay errores (celdas rojas).');
+  if (board[r][c] === null) {
+    board[r][c] = 0;
+  } else if (board[r][c] === 0) {
+    board[r][c] = 1;
+  } else if (board[r][c] === 1) {
+    board[r][c] = null;
+  }
+
+  drawBoard(); // Redibuja para reflejar el cambio
 }
+
+
+function checkSolution() {
+  let ok = true;
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const cell = document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
+
+      if (board[r][c] === null) {
+        cell.classList.remove('error');
+        cell.classList.remove('fixed');
+        ok = false; // Aún no está completado
+        continue;
+      }
+
+      if (board[r][c] === fullBoard[r][c]) {
+        cell.classList.remove('error');
+        cell.classList.add('fixed'); // Bloquea la celda
+      } else {
+        cell.classList.add('error'); // Marca error
+        ok = false;
+      }
+    }
+  }
+
+  if (ok) {
+    alert('🎉 ¡Correcto! Has resuelto el tablero.');
+  } else {
+    alert('❌ Hay errores o celdas vacías.');
+  }
+}
+
 
 function showHint(){
   alert('💡 Implementa aquí la lógica de pista.');
