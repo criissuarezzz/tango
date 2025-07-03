@@ -282,6 +282,9 @@ function checkUniqueRowsCols(b){
 }
 
 
-document.getElementById('btn-easy').onclick = () => startGame(6);
-document.getElementById('btn-medium').onclick = () => startGame(8);
-document.getElementById('btn-hard').onclick = () => startGame(10);
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('btn-easy').onclick = () => startGame(6);
+  document.getElementById('btn-medium').onclick = () => startGame(8);
+  document.getElementById('btn-hard').onclick = () => startGame(10);
+});
+
