@@ -3,13 +3,28 @@ let fullBoard = [];
 let board = [];
 let clues = [];
 let initialBoard = [];
+let timerInterval;
+let seconds = 0;
+let timerActive = false;
 
 function startGame(s) {
   size = s;
+  // Preguntar si activar cronómetro
+  const useTimer = confirm('¿Quieres activar el cronómetro?');
+
   document.getElementById('menu').style.display = 'none';
   document.getElementById('game').style.display = 'block';
+
   newGame();
+
+  if (useTimer) {
+    startTimer();
+  } else {
+    stopTimer();
+    hideTimer();
+  }
 }
+
 
 function backToMenu() {
   document.getElementById('menu').style.display = 'block';
@@ -128,6 +143,43 @@ function generateTangoClues(b,count){
 
 
 
+function startTimer() {
+  seconds = 0;
+  timerActive = true;
+  showTimer();
+  updateTimerDisplay();
+
+  timerInterval = setInterval(() => {
+    seconds++;
+    updateTimerDisplay();
+  }, 1000);
+}
+
+function stopTimer() {
+  timerActive = false;
+  clearInterval(timerInterval);
+}
+
+function showTimer() {
+  const timerDiv = document.getElementById('timer');
+  if (timerDiv) timerDiv.style.display = 'block';
+}
+
+function hideTimer() {
+  const timerDiv = document.getElementById('timer');
+  if (timerDiv) timerDiv.style.display = 'none';
+}
+
+function updateTimerDisplay() {
+  const timerDiv = document.getElementById('timer');
+  if (!timerDiv) return;
+
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  timerDiv.textContent = `Tiempo: ${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+
 
 // Función que detecta si una celda es fija original (pista o dado por el puzzle)
 function isGivenCell(r, c) {
@@ -138,7 +190,9 @@ function isGivenCell(r, c) {
 function drawBoard() {
   const boardDiv = document.getElementById('board');
   boardDiv.innerHTML = '';
-  boardDiv.style.gridTemplateColumns = `repeat(${size + 1}, 40px)`; // +1 para columna contador
+  boardDiv.style.gridTemplateColumns = `repeat(${size + 1}, 40px)`; // +1 para contador
+
+  let half = size / 2;
 
   // Esquina vacía arriba a la izquierda
   let emptyCell = document.createElement('div');
@@ -153,18 +207,32 @@ function drawBoard() {
     let counter = document.createElement('div');
     counter.className = 'counter';
     counter.textContent = `0:${zeros} 1:${ones}`;
+
+    // Poner rojo si no cumple (más que half)
+    if (zeros > half || ones > half) {
+      counter.classList.add('error');
+    } else {
+      counter.classList.remove('error');
+    }
+
     boardDiv.appendChild(counter);
   }
 
   // Filas con contadores y celdas
   for (let r = 0; r < size; r++) {
-    // Contador fila a la izquierda
     let row = board[r];
     let zeros = row.filter(v => v === 0).length;
     let ones = row.filter(v => v === 1).length;
     let counter = document.createElement('div');
     counter.className = 'counter';
     counter.textContent = `0:${zeros} 1:${ones}`;
+
+    if (zeros > half || ones > half) {
+      counter.classList.add('error');
+    } else {
+      counter.classList.remove('error');
+    }
+
     boardDiv.appendChild(counter);
 
     // Celdas
@@ -174,7 +242,6 @@ function drawBoard() {
       cell.setAttribute('data-r', r);
       cell.setAttribute('data-c', c);
 
-      // Solo las celdas dadas al principio son fijas
       if (isGivenCell(r, c)) {
         cell.textContent = board[r][c];
         cell.classList.add('fixed');
@@ -185,7 +252,6 @@ function drawBoard() {
         cell.onclick = () => cycleValue(r, c, cell);
       }
 
-      // Añadir pistas (clues) si hay
       clues.filter(cl => cl[0] === r && cl[1] === c).forEach(cl => {
         let hint = document.createElement('div');
         hint.className = 'hint ' + cl[2];
