@@ -93,3 +93,9 @@ button {
   color: #6c757d;
 }
 
+.counter.error {
+  background-color: #f08080; /* rojo suave */
+  color: white;
+  font-weight: bold;
+}
+
