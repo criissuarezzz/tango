@@ -24,13 +24,81 @@ function newGame() {
 }
 
 function generateFullBoard(size) {
-  let b;
-  do {
-    b = Array.from({ length: size }, () =>
-      Array.from({ length: size }, () => Math.random()<0.5?0:1));
-  } while (!isBoardValid(b));
-  return b;
+  let maxTries = 500; // para evitar bucles infinitos
+  let board = Array.from({length: size}, () => Array(size).fill(null));
+  let half = size / 2;
+
+  for (let row = 0; row < size; row++) {
+    let tries = 0;
+    let success = false;
+    while (tries++ < maxTries) {
+      let candidate = generateValidLine(size, half);
+      board[row] = candidate;
+
+      // comprobar que no rompe restricciones:
+      if (!hasTriple(candidate) && 
+          checkColumnsSoFar(board, row, half) &&
+          uniqueSoFar(board, row)) {
+        success = true;
+        break;
+      }
+    }
+    if (!success) {
+      // si no se consigue, volver a empezar todo
+      return generateFullBoard(size);
+    }
+  }
+  return board;
 }
+
+function generateValidLine(size, half) {
+  let line = [];
+  let zeros = 0, ones = 0;
+
+  for (let i = 0; i < size; i++) {
+    let candidates = [];
+
+    if (zeros < half) candidates.push(0);
+    if (ones < half) candidates.push(1);
+
+    // evitar tres iguales seguidos
+    if (i >= 2 && line[i-1] === line[i-2]) {
+      candidates = candidates.filter(v => v !== line[i-1]);
+    }
+
+    // elegir aleatorio
+    let val = candidates[Math.floor(Math.random() * candidates.length)];
+    line.push(val);
+    if (val === 0) zeros++; else ones++;
+  }
+
+  return line;
+}
+
+function checkColumnsSoFar(board, uptoRow, half) {
+  for (let col = 0; col < board[0].length; col++) {
+    let colVals = [];
+    for (let row = 0; row <= uptoRow; row++) {
+      colVals.push(board[row][col]);
+    }
+    if (hasTriple(colVals)) return false;
+    let zeros = colVals.filter(v=>v===0).length;
+    let ones = colVals.filter(v=>v===1).length;
+    if (zeros > half || ones > half) return false;
+  }
+  return true;
+}
+
+function uniqueSoFar(board, uptoRow) {
+  let existing = new Set();
+  for (let i=0; i<=uptoRow; i++) {
+    let key = board[i].join('');
+    if (existing.has(key)) return false;
+    existing.add(key);
+  }
+  return true;
+}
+
 
 function maskBoard(full, cluesCount) {
   let masked = full.map(row=>[...row]);
