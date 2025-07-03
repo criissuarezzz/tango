@@ -124,7 +124,16 @@ function generateTangoClues(b,count){
   return res;
 }
 
-// Actualiza los contadores de filas y columnas en el tablero
+function cycleValue(r, c) {
+  // Solo permite editar si la celda no es fija
+  if (fullBoard[r][c] !== null && board[r][c] === fullBoard[r][c]) return;
+  let cur = board[r][c];
+  // Ciclo: null -> 0 -> 1 -> null
+  let nv = cur === null ? 0 : cur === 0 ? 1 : null;
+  board[r][c] = nv;
+  drawBoard(); // Redibuja todo el tablero, incluidos los contadores
+}
+
 function drawBoard() {
   const boardDiv = document.getElementById('board');
   boardDiv.innerHTML = '';
@@ -169,7 +178,7 @@ function drawBoard() {
       } else {
         cell.textContent = board[r][c] === null ? '' : board[r][c];
         cell.classList.remove('fixed'); // gris claro en CSS
-        cell.onclick = () => cycleValue(r, c, cell);
+        cell.onclick = () => cycleValue(r, c);
       }
 
       // Añadir pistas (clues) si las hay en esa celda
@@ -183,33 +192,6 @@ function drawBoard() {
       boardDiv.appendChild(cell);
     }
   }
-}
-
-// Corrige la función para alternar el valor de una celda editable
-function cycleValue(r, c, cell) {
-  // Solo permite editar si la celda no es fija
-  if (fullBoard[r][c] !== null && board[r][c] === fullBoard[r][c]) return;
-  let cur = board[r][c];
-  let nv = cur === null ? 0 : cur === 0 ? 1 : null;
-  board[r][c] = nv;
-  cell.textContent = nv === null ? '' : nv;
-  drawBoard(); // Redibuja todo el tablero para actualizar contadores y celdas
-}
-
-// Elimina la función updateCounters si solo usas drawBoard para refrescar todo
-
-// Opcional: Si quieres mantener updateCounters para solo actualizar los contadores y no redibujar todo:
-
-
-
-
-function cycleValue(r,c,cell){
-  if(board[r][c] != null) return;  // Si la celda tiene valor visible (fija), no editar
-  let cur=board[r][c];
-  let nv=cur==null?0:cur==0?1:null;
-  board[r][c]=nv;
-  cell.textContent=nv==null?'':nv;
-  updateCounters();
 }
 
 
