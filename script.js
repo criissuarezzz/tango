@@ -61,7 +61,7 @@ function newGame() {
   fullBoard = generateFullBoard(size);
   clues = generateTangoClues(fullBoard, Math.floor(size * 1.5));
   board = maskBoard(fullBoard, Math.floor(size * size * 0.4));
-  initialBoard = board.map(row => row.slice());
+  initialBoard = fullBoard.map(row => row.slice());
   drawBoard();
 }
 
