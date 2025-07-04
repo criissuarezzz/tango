@@ -413,8 +413,8 @@ function checkUniqueRowsCols(b){
 
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-easy').onclick = () => selectLevel(6);
-  document.getElementById('btn-medium').onclick = () => selectLevel(8);
-  document.getElementById('btn-hard').onclick = () => selectLevel(10);
+  document.getElementById('btn-medium').onclick = () => selectLevel(10);
+  document.getElementById('btn-hard').onclick = () => selectLevel(14);
 
   document.getElementById('btn-timer-yes').onclick = () => {
     useTimer = true;
