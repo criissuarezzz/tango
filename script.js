@@ -6,6 +6,20 @@ let initialBoard = [];
 let timerInterval = null;
 let timerSeconds = 0;
 let useTimer = false;
+let zoomLevel = 1;
+
+function zoomIn() {
+  zoomLevel += 0.1;
+  document.getElementById('board').style.transform = `scale(${zoomLevel})`;
+  document.getElementById('board').style.transformOrigin = 'top left';
+}
+
+function zoomOut() {
+  zoomLevel = Math.max(0.5, zoomLevel - 0.1);
+  document.getElementById('board').style.transform = `scale(${zoomLevel})`;
+  document.getElementById('board').style.transformOrigin = 'top left';
+}
+
 
 // Inicia el juego cuando el usuario confirma nivel y opción de cronómetro
 function startGameConfirmed() {
