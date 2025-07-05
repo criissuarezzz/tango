@@ -320,15 +320,16 @@ function drawBoard() {
       cell.setAttribute('data-r', r);
       cell.setAttribute('data-c', c);
 
-      if (isGivenCell(r, c)) {
-        cell.textContent = board[r][c];
-        cell.classList.add('fixed');
-        cell.onclick = null;
+      if (initialBoard[r][c] === 0 || initialBoard[r][c] === 1) {
+         cell.textContent = board[r][c];
+         cell.classList.add('fixed');
+         cell.onclick = null;
       } else {
-        cell.textContent = board[r][c] === null ? '' : board[r][c];
-        cell.classList.remove('fixed');
-        cell.onclick = () => cycleValue(r, c, cell);
-      }
+         cell.textContent = board[r][c] === null ? '' : board[r][c];
+         cell.classList.remove('fixed');
+         cell.onclick = () => cycleValue(r, c, cell);
+}
+
 
       clues.filter(cl => cl[0] === r && cl[1] === c).forEach(cl => {
         let hint = document.createElement('div');
