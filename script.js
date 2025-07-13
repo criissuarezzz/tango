@@ -71,15 +71,44 @@ function selectLevel(s) {
   document.getElementById('menu-timer').style.display = 'block';
 }
 
-function newGame() {
-  fullBoard = generateFullBoard(size);
-  clues = generateTangoClues(fullBoard, Math.floor(size * 1.5));
-  board = maskBoard(fullBoard, Math.floor(size * size * 0.4));
-  initialBoard = board.map(row => row.slice());
+function countSolutions(board) {
+  let count = 0;
 
-  drawBoard();
+  function backtrack(r, c) {
+    if (r === size) {
+      if (isBoardValid(board)) count++;
+      return;
+    }
+
+    let nr = c === size - 1 ? r + 1 : r;
+    let nc = c === size - 1 ? 0 : c + 1;
+
+    if (initialBoard[r][c] !== null) {
+      backtrack(nr, nc);
+    } else {
+      for (let val of [0, 1]) {
+        board[r][c] = val;
+        if (isBoardValid(board)) backtrack(nr, nc);
+        if (count > 1) return; // optimización: más de una solución, no seguir
+      }
+      board[r][c] = null;
+    }
+  }
+
+  backtrack(0, 0);
+  return count;
 }
 
+function newGame() {
+  do {
+    fullBoard = generateFullBoard(size);
+    initialBoard = fullBoard.map(row => row.slice());
+    board = maskBoard(fullBoard, Math.floor(size * size * 0.4));
+  } while (countSolutions(board.map(row => row.slice())) !== 1); // repetir si no tiene solución única
+
+  clues = generateTangoClues(fullBoard, Math.floor(size * 1.5));
+  drawBoard();
+}
 
 function generateFullBoard(size) {
   let maxTries = 500; // para evitar bucles infinitos
