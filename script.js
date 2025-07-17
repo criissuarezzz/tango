@@ -349,7 +349,8 @@ function drawBoard() {
       cell.setAttribute('data-r', r);
       cell.setAttribute('data-c', c);
 
-      if (initialBoard[r][c] === 0 || initialBoard[r][c] === 1) {
+      if (board[r][c] === 0 || board[r][c] === 1) {
+
          cell.textContent = board[r][c];
          cell.classList.add('fixed');
          cell.onclick = null;
