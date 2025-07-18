@@ -102,14 +102,13 @@ function countSolutions(board) {
 function newGame() {
   do {
     fullBoard = generateFullBoard(size);
-    initialBoard = fullBoard.map(row => row.slice());
     board = maskBoard(fullBoard, Math.floor(size * size * 0.4));
-  } while (countSolutions(board.map(row => row.slice())) !== 1); // repetir si no tiene solución única
+    initialBoard = board.map(row => row.map(val => val));  // <- copiar el tablero "incompleto"
+  } while (countSolutions(board.map(row => row.slice())) !== 1);
 
   clues = generateTangoClues(fullBoard, Math.floor(size * 1.5));
   drawBoard();
 }
-
 function generateFullBoard(size) {
   let maxTries = 500; // para evitar bucles infinitos
   let board = Array.from({length: size}, () => Array(size).fill(null));
