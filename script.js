@@ -103,7 +103,7 @@ function newGame() {
   do {
     fullBoard = generateFullBoard(size);
     board = maskBoard(fullBoard, Math.floor(size * size * 0.4));
-    initialBoard = board.map(row => row.map(val => val));  // <- copiar el tablero "incompleto"
+    initialBoard = board.map(row => row.map(val => val));
   } while (countSolutions(board.map(row => row.slice())) !== 1);
 
   clues = generateTangoClues(fullBoard, Math.floor(size * 1.5));
@@ -349,14 +349,15 @@ function drawBoard() {
       cell.setAttribute('data-c', c);
 
       if (initialBoard[r][c] === 0 || initialBoard[r][c] === 1) {
-         cell.textContent = board[r][c];
-         cell.classList.add('fixed');
-         cell.onclick = null;
-      } else {
-         cell.textContent = board[r][c] === null ? '' : board[r][c];
-         cell.classList.remove('fixed');
-         cell.onclick = () => cycleValue(r, c, cell);
+   cell.textContent = board[r][c];
+   cell.classList.add('fixed'); // se marca como fija
+   cell.onclick = null;
+} else {
+   cell.textContent = board[r][c] === null ? '' : board[r][c];
+   cell.classList.remove('fixed');
+   cell.onclick = () => cycleValue(r, c, cell); // se puede tocar
 }
+
 
 
       clues.filter(cl => cl[0] === r && cl[1] === c).forEach(cl => {
