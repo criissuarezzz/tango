@@ -102,8 +102,9 @@ function countSolutions(board) {
 function newGame() {
   do {
     fullBoard = generateFullBoard(size);
-    board = maskBoard(fullBoard, Math.floor(size * size * 0.4));
-    initialBoard = board.map(row => row.map(val => val));
+    board = maskBoard(fullBoard); // ya no pasas una cantidad fija
+    initialBoard = board.map(row => [...row]);
+
   } while (countSolutions(board.map(row => row.slice())) !== 1);
 
   clues = generateTangoClues(fullBoard, Math.floor(size * 1.5));
@@ -186,15 +187,33 @@ function uniqueSoFar(board, uptoRow) {
 }
 
 
-function maskBoard(full, cluesCount) {
-  let masked = full.map(row=>[...row]);
-  let pos = [];
-  for (let r=0;r<size;r++) for(let c=0;c<size;c++) pos.push([r,c]);
-  pos.sort(()=>Math.random()-0.5);
-  let toRemove = size*size - cluesCount;
-  for(let i=0;i<toRemove;i++) masked[pos[i][0]][pos[i][1]]=null;
+function maskBoard(full) {
+  let masked = full.map(row => [...row]);
+  let positions = [];
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      positions.push([r, c]);
+    }
+  }
+
+  positions.sort(() => Math.random() - 0.5); // mezcla aleatoria
+
+  for (let [r, c] of positions) {
+    const temp = masked[r][c];
+    masked[r][c] = null;
+
+    let testBoard = masked.map(row => [...row]);
+    const solCount = countSolutions(testBoard);
+
+    if (solCount !== 1) {
+      // Si se pierden soluciones únicas, devolver el valor
+      masked[r][c] = temp;
+    }
+  }
+
   return masked;
 }
+
 
 function generateTangoClues(b,count){
   let pos=[];
