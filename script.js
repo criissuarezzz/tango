@@ -129,33 +129,29 @@ function newGame() {
 }
 function drawBoard() {
   const boardDiv = document.getElementById('board');
-  boardDiv.innerHTML = ""; // Limpia el contenido
+  boardDiv.innerHTML = "";
 
   for (let i = 0; i < size; i++) {
     const rowDiv = document.createElement('div');
     rowDiv.className = 'row';
 
     for (let j = 0; j < size; j++) {
-      const cell = document.createElement('input');
-      cell.type = 'text';
-      cell.maxLength = 1;
+      const cell = document.createElement('div');
+      cell.className = 'cell';
       cell.dataset.row = i;
       cell.dataset.col = j;
-      cell.className = 'cell';
 
-      if (board[i][j] !== "") {
-        cell.value = board[i][j];
-        cell.disabled = true;
+      const val = board[i][j];
+      cell.textContent = val === "" ? "" : val;
+
+      if (initialBoard[i][j] !== "") {
+        cell.classList.add('prefilled');
       } else {
-        cell.value = "";
-        cell.addEventListener('input', e => {
-          const val = e.target.value;
-          if (val === "0" || val === "1") {
-            board[i][j] = parseInt(val);
-          } else {
-            e.target.value = "";
-            board[i][j] = "";
-          }
+        cell.addEventListener('click', () => {
+          const current = board[i][j];
+          const next = current === "" ? 0 : current === 0 ? 1 : "";
+          board[i][j] = next;
+          cell.textContent = next === "" ? "" : next;
         });
       }
 
@@ -241,6 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   document.getElementById('btn-replay-no').onclick = backToMenu;
 });
+
 
 
 
