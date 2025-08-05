@@ -129,11 +129,12 @@ function newGame() {
 }
 function drawBoard() {
   const boardDiv = document.getElementById('board');
-  boardDiv.innerHTML = "";
+  boardDiv.innerHTML = ""; // Limpia el contenido
 
   for (let i = 0; i < size; i++) {
     const rowDiv = document.createElement('div');
     rowDiv.className = 'row';
+
     for (let j = 0; j < size; j++) {
       const cell = document.createElement('input');
       cell.type = 'text';
@@ -157,12 +158,13 @@ function drawBoard() {
           }
         });
       }
+
       rowDiv.appendChild(cell);
     }
+
     boardDiv.appendChild(rowDiv);
   }
 }
-
 // =========================
 // Utilidades
 // =========================
@@ -239,5 +241,6 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   document.getElementById('btn-replay-no').onclick = backToMenu;
 });
+
 
 
