@@ -35,10 +35,11 @@ button {
 
 #board {
   display: grid;
+  grid-template-columns: repeat(var(--grid-size), 40px);
   gap: 4px;
   margin: 10px;
+  justify-content: center;
 }
-
 .cell {
   width: 40px;
   height: 40px;
@@ -105,4 +106,5 @@ button {
   right: 10px;
   z-index: 1000;
 }
+
 
