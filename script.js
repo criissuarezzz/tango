@@ -130,11 +130,9 @@ function newGame() {
 function drawBoard() {
   const boardDiv = document.getElementById('board');
   boardDiv.innerHTML = "";
+  boardDiv.style.setProperty('--grid-size', size); // Establece el tamaño del grid
 
   for (let i = 0; i < size; i++) {
-    const rowDiv = document.createElement('div');
-    rowDiv.className = 'row';
-
     for (let j = 0; j < size; j++) {
       const cell = document.createElement('div');
       cell.className = 'cell';
@@ -145,7 +143,7 @@ function drawBoard() {
       cell.textContent = val === "" ? "" : val;
 
       if (initialBoard[i][j] !== "") {
-        cell.classList.add('prefilled');
+        cell.classList.add('fixed');
       } else {
         cell.addEventListener('click', () => {
           const current = board[i][j];
@@ -155,10 +153,8 @@ function drawBoard() {
         });
       }
 
-      rowDiv.appendChild(cell);
+      boardDiv.appendChild(cell);
     }
-
-    boardDiv.appendChild(rowDiv);
   }
 }
 // =========================
@@ -237,6 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   document.getElementById('btn-replay-no').onclick = backToMenu;
 });
+
 
 
 
