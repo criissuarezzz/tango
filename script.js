@@ -122,11 +122,11 @@ function maskBoard(full, cluesCount = Math.floor(size * size * 0.5)) {
 
 function newGame() {
   fullBoard = generateValidBoard();
+  console.table(fullBoard); // 👈 Debug
   board = maskBoard(fullBoard);
   initialBoard = board.map(r => r.slice());
   drawBoard();
 }
-
 function drawBoard() {
   const boardDiv = document.getElementById('board');
   boardDiv.innerHTML = "";
@@ -239,4 +239,5 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   document.getElementById('btn-replay-no').onclick = backToMenu;
 });
+
 
