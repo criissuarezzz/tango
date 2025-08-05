@@ -188,23 +188,27 @@ function uniqueSoFar(board, uptoRow) {
 
 
 function maskBoard(full, cluesCount) {
-  let masked = full.map(row=>[...row]);
+  let masked = full.map(row => [...row]);
   let pos = [];
-  for (let r=0;r<size;r++) for(let c=0;c<size;c++) pos.push([r,c]);
-  pos.sort(()=>Math.random()-0.5);
-  let toRemove = size*size - cluesCount;
-  for(let i=0;i<toRemove;i++) masked[pos[i][0]][pos[i][1]]=null;
+  for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) pos.push([r, c]);
+  pos.sort(() => Math.random() - 0.5);
+  let toRemove = size * size - cluesCount;
+  for (let i = 0; i < toRemove; i++) masked[pos[i][0]][pos[i][1]] = null;
 
-function generateTangoClues(b,count){
-  let pos=[];
-  for(let r=0;r<size;r++) for(let c=0;c<size-1;c++) pos.push([r,c,'H']);
-  for(let r=0;r<size-1;r++) for(let c=0;c<size;c++) pos.push([r,c,'V']);
-  pos.sort(()=>Math.random()-0.5);
-  let res=[];
-  while(res.length<count && pos.length){
-    let [r,c,d]=pos.pop();
-    let a=b[r][c],bb=d=='H'?b[r][c+1]:b[r+1][c];
-    if(a!=null&&bb!=null) res.push([r,c,d,a==bb?'=':'x']);
+  return masked; // ✅ Añade este return
+} // ✅ Y cierra la función aquí
+
+// Y ahora empieza bien la siguiente función
+function generateTangoClues(b, count) {
+  let pos = [];
+  for (let r = 0; r < size; r++) for (let c = 0; c < size - 1; c++) pos.push([r, c, 'H']);
+  for (let r = 0; r < size - 1; r++) for (let c = 0; c < size; c++) pos.push([r, c, 'V']);
+  pos.sort(() => Math.random() - 0.5);
+  let res = [];
+  while (res.length < count && pos.length) {
+    let [r, c, d] = pos.pop();
+    let a = b[r][c], bb = d == 'H' ? b[r][c + 1] : b[r + 1][c];
+    if (a != null && bb != null) res.push([r, c, d, a == bb ? '=' : 'x']);
   }
   return res;
 }
@@ -499,3 +503,4 @@ document.addEventListener('DOMContentLoaded', () => {
     backToLevelMenu();
   };
 });
+
