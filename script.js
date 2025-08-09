@@ -57,24 +57,63 @@ function selectLevel(n) {
 // =========================
 
 function generateValidBoard() {
-  let attempts = 0;
-  while (attempts < 1000) {
-    const board = [];
-    for (let i = 0; i < size; i++) {
-      let row;
-      do {
-        row = Array.from({ length: size }, () => Math.round(Math.random()));
-      } while (!isValidLine(row));
-      board.push(row);
+  let board = Array.from({ length: size }, () => Array(size).fill(""));
+
+  function backtrack(row, col) {
+    if (row === size) return true;
+    let nextRow = col === size - 1 ? row + 1 : row;
+    let nextCol = col === size - 1 ? 0 : col + 1;
+
+    let nums = [0, 1];
+    shuffleArray(nums);
+    for (let num of nums) {
+      board[row][col] = num;
+
+      // Reglas parciales: no más de dos iguales seguidos y equilibrio parcial
+      if (isValidPartial(row, col)) {
+        if (backtrack(nextRow, nextCol)) return true;
+      }
     }
 
-    if (checkAllRules(board)) return board;
-    attempts++;
+    board[row][col] = "";
+    return false;
   }
-  alert("No se pudo generar un tablero válido.");
-  return Array.from({ length: size }, () => Array(size).fill(""));
-}
 
+  function isValidPartial(r, c) {
+    let rowArr = board[r];
+    let colArr = board.map(row => row[c]);
+
+    // No más de dos iguales seguidos en fila
+    for (let i = 0; i < size - 2; i++) {
+      if (rowArr[i] !== "" && rowArr[i] === rowArr[i + 1] && rowArr[i] === rowArr[i + 2]) return false;
+    }
+    // No más de dos iguales seguidos en columna
+    for (let i = 0; i < size - 2; i++) {
+      if (colArr[i] !== "" && colArr[i] === colArr[i + 1] && colArr[i] === colArr[i + 2]) return false;
+    }
+
+    // Equilibrio (máximo la mitad por ahora)
+    if (rowArr.filter(x => x === 0).length > size / 2) return false;
+    if (rowArr.filter(x => x === 1).length > size / 2) return false;
+    if (colArr.filter(x => x === 0).length > size / 2) return false;
+    if (colArr.filter(x => x === 1).length > size / 2) return false;
+
+    // Filas duplicadas completas
+    for (let i = 0; i < r; i++) {
+      if (!rowArr.includes("") && arraysEqual(board[i], rowArr)) return false;
+    }
+    // Columnas duplicadas completas
+    for (let j = 0; j < c; j++) {
+      let colJ = board.map(row => row[j]);
+      if (!colArr.includes("") && arraysEqual(colJ, colArr)) return false;
+    }
+
+    return true;
+  }
+
+  backtrack(0, 0);
+  return board;
+}
 function isValidLine(line) {
   // No más de dos iguales seguidos
   for (let i = 0; i < line.length - 2; i++) {
@@ -244,6 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   document.getElementById('btn-replay-no').onclick = backToMenu;
 });
+
 
 
 
