@@ -27,6 +27,7 @@ function startGameConfirmed() {
   if (useTimer) {
     document.getElementById('timer').style.display = 'block';
     updateTimerText();
+    if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(() => {
       timerSeconds++;
       updateTimerText();
@@ -82,22 +83,36 @@ function generateValidBoard() {
     let rowArr = b[r];
     let colArr = b.map(row => row[c]);
 
-    // No más de dos iguales seguidos
+    // No más de dos iguales seguidos en fila
     for (let i = 0; i < size - 2; i++) {
-      if (rowArr[i] !== "" && rowArr[i] === rowArr[i + 1] && rowArr[i] === rowArr[i + 2]) return false;
-      if (colArr[i] !== "" && colArr[i] === colArr[i + 1] && colArr[i] === colArr[i + 2]) return false;
+      if (
+        rowArr[i] !== "" &&
+        rowArr[i] === rowArr[i + 1] &&
+        rowArr[i] === rowArr[i + 2]
+      )
+        return false;
+    }
+    // No más de dos iguales seguidos en columna
+    for (let i = 0; i < size - 2; i++) {
+      if (
+        colArr[i] !== "" &&
+        colArr[i] === colArr[i + 1] &&
+        colArr[i] === colArr[i + 2]
+      )
+        return false;
     }
 
-    // Equilibrio parcial
+    // No más de la mitad iguales (0 o 1) en fila o columna
     if (rowArr.filter(x => x === 0).length > size / 2) return false;
     if (rowArr.filter(x => x === 1).length > size / 2) return false;
     if (colArr.filter(x => x === 0).length > size / 2) return false;
     if (colArr.filter(x => x === 1).length > size / 2) return false;
 
-    // Filas/columnas duplicadas
+    // Filas duplicadas completas
     for (let i = 0; i < r; i++) {
       if (!rowArr.includes("") && arraysEqual(b[i], rowArr)) return false;
     }
+    // Columnas duplicadas completas
     for (let j = 0; j < c; j++) {
       let colJ = b.map(row => row[j]);
       if (!colArr.includes("") && arraysEqual(colJ, colArr)) return false;
@@ -113,15 +128,22 @@ function generateValidBoard() {
 function generateConstraints() {
   constraints = Array.from({ length: size }, () => Array(size).fill(null));
 
-  // Añadimos restricciones aleatorias
-  let numConstraints = Math.floor(size * size * 0.15); // 15% de casillas
-  for (let i = 0; i < numConstraints; i++) {
+  let attempts = 0;
+  let maxAttempts = size * size * 10; // Evitar bucle infinito
+  let numConstraints = Math.floor(size * size * 0.15); // 15% casillas con restricción
+  let added = 0;
+
+  while (added < numConstraints && attempts < maxAttempts) {
+    attempts++;
     let r1 = Math.floor(Math.random() * size);
     let c1 = Math.floor(Math.random() * size);
     let r2 = Math.floor(Math.random() * size);
     let c2 = Math.floor(Math.random() * size);
     if (r1 === r2 && c1 === c2) continue;
+    if (constraints[r1][c1] !== null) continue; // Ya tiene restricción
+
     constraints[r1][c1] = { type: Math.random() < 0.5 ? "=" : "x", target: [r2, c2] };
+    added++;
   }
 }
 
@@ -155,8 +177,8 @@ function drawBoard() {
   const boardDiv = document.getElementById('board');
   boardDiv.innerHTML = "";
   boardDiv.style.display = "grid";
-  boardDiv.style.gridTemplateColumns = `repeat(${size}, 40px)`;
-  boardDiv.style.gridTemplateRows = `repeat(${size}, 40px)`;
+  boardDiv.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+  boardDiv.style.gridTemplateRows = `repeat(${size}, 1fr)`;
 
   for (let i = 0; i < size; i++) {
     for (let j = 0; j < size; j++) {
@@ -166,20 +188,15 @@ function drawBoard() {
       cell.dataset.col = j;
 
       if (constraints[i][j]) {
-        // Mostrar el símbolo = o x con estilo
-        const span = document.createElement('span');
-        span.textContent = constraints[i][j].type;
-        span.className = 'constraint-symbol';
-        cell.appendChild(span);
+        cell.textContent = constraints[i][j].type;
         cell.classList.add('constraint');
-        // No poner evento click en restricciones
       } else {
         const val = board[i][j];
         cell.textContent = val === "" ? "" : val;
-
         if (initialBoard[i][j] !== "") {
           cell.classList.add('fixed');
         } else {
+          cell.style.cursor = 'pointer';
           cell.addEventListener('click', () => {
             const current = board[i][j];
             let next;
@@ -195,54 +212,9 @@ function drawBoard() {
           });
         }
       }
+
       boardDiv.appendChild(cell);
     }
-  }
-}
-
-function checkSolution() {
-  let errors = new Set();
-
-  // Comprobación valores
-  for (let i = 0; i < size; i++) {
-    for (let j = 0; j < size; j++) {
-      if (parseInt(board[i][j]) !== fullBoard[i][j]) {
-        errors.add(`${i},${j}`);
-      }
-    }
-  }
-
-  // Comprobación restricciones
-  for (let i = 0; i < size; i++) {
-    for (let j = 0; j < size; j++) {
-      if (constraints[i][j]) {
-        let [tr, tc] = constraints[i][j].target;
-        if (constraints[i][j].type === "=" && board[i][j] !== board[tr][tc]) {
-          errors.add(`${i},${j}`);
-          errors.add(`${tr},${tc}`);
-        }
-        if (constraints[i][j].type === "x" && board[i][j] === board[tr][tc]) {
-          errors.add(`${i},${j}`);
-          errors.add(`${tr},${tc}`);
-        }
-      }
-    }
-  }
-
-  // Marcar errores
-  document.querySelectorAll('.cell').forEach(cell => cell.classList.remove('error'));
-  errors.forEach(coord => {
-    const [r, c] = coord.split(',').map(Number);
-    const cell = document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
-    if (cell) cell.classList.add('error');
-  });
-
-  if (errors.size === 0) {
-    document.getElementById('game').style.display = 'none';
-    document.getElementById('menu-finish').style.display = 'block';
-    if (timerInterval) clearInterval(timerInterval);
-  } else {
-    alert("❌ Hay errores en el tablero.");
   }
 }
 
@@ -278,6 +250,48 @@ function showHint() {
   alert("No hay más pistas disponibles.");
 }
 
+function checkSolution() {
+  let errors = [];
+
+  // Comprobación valores
+  for (let i = 0; i < size; i++) {
+    for (let j = 0; j < size; j++) {
+      if (parseInt(board[i][j]) !== fullBoard[i][j]) {
+        errors.push([i, j]);
+      }
+    }
+  }
+
+  // Comprobación restricciones
+  for (let i = 0; i < size; i++) {
+    for (let j = 0; j < size; j++) {
+      if (constraints[i][j]) {
+        let [tr, tc] = constraints[i][j].target;
+        if (constraints[i][j].type === "=" && board[i][j] !== board[tr][tc]) {
+          errors.push([i, j], [tr, tc]);
+        }
+        if (constraints[i][j].type === "x" && board[i][j] === board[tr][tc]) {
+          errors.push([i, j], [tr, tc]);
+        }
+      }
+    }
+  }
+
+  // Marcar errores
+  document.querySelectorAll('.cell').forEach(cell => cell.classList.remove('error'));
+  errors.forEach(([r, c]) => {
+    const cell = document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
+    if (cell) cell.classList.add('error');
+  });
+
+  if (errors.length === 0) {
+    document.getElementById('game').style.display = 'none';
+    document.getElementById('menu-finish').style.display = 'block';
+    if (timerInterval) clearInterval(timerInterval);
+  } else {
+    alert("❌ Hay errores en el tablero.");
+  }
+}
 
 // =========================
 // Eventos del menú
@@ -305,4 +319,3 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   document.getElementById('btn-replay-no').onclick = backToMenu;
 });
-
