@@ -2,6 +2,7 @@ let size = 6;
 let fullBoard = [];
 let board = [];
 let initialBoard = [];
+let constraints = []; // Matriz con restricciones "=" o "x"
 let timerInterval = null;
 let timerSeconds = 0;
 let useTimer = false;
@@ -53,41 +54,37 @@ function selectLevel(n) {
 }
 
 // =========================
-// Juego y tablero
+// Generación de tablero
 // =========================
 
 function generateValidBoard() {
-  let tempBoard = Array.from({ length: size }, () => Array(size).fill(""));
+  let b = Array.from({ length: size }, () => Array(size).fill(""));
 
   function backtrack(row, col) {
-    if (row === size) return true; // tablero completo
+    if (row === size) return true;
     let nextRow = col === size - 1 ? row + 1 : row;
     let nextCol = col === size - 1 ? 0 : col + 1;
 
     let nums = [0, 1];
     shuffleArray(nums);
     for (let num of nums) {
-      tempBoard[row][col] = num;
-
+      b[row][col] = num;
       if (isValidPartial(row, col)) {
         if (backtrack(nextRow, nextCol)) return true;
       }
     }
 
-    tempBoard[row][col] = "";
+    b[row][col] = "";
     return false;
   }
 
   function isValidPartial(r, c) {
-    let rowArr = tempBoard[r];
-    let colArr = tempBoard.map(row => row[c]);
+    let rowArr = b[r];
+    let colArr = b.map(row => row[c]);
 
-    // No más de dos iguales seguidos en fila
+    // No más de dos iguales seguidos
     for (let i = 0; i < size - 2; i++) {
       if (rowArr[i] !== "" && rowArr[i] === rowArr[i + 1] && rowArr[i] === rowArr[i + 2]) return false;
-    }
-    // No más de dos iguales seguidos en columna
-    for (let i = 0; i < size - 2; i++) {
       if (colArr[i] !== "" && colArr[i] === colArr[i + 1] && colArr[i] === colArr[i + 2]) return false;
     }
 
@@ -97,13 +94,12 @@ function generateValidBoard() {
     if (colArr.filter(x => x === 0).length > size / 2) return false;
     if (colArr.filter(x => x === 1).length > size / 2) return false;
 
-    // Filas duplicadas completas
+    // Filas/columnas duplicadas
     for (let i = 0; i < r; i++) {
-      if (!rowArr.includes("") && arraysEqual(tempBoard[i], rowArr)) return false;
+      if (!rowArr.includes("") && arraysEqual(b[i], rowArr)) return false;
     }
-    // Columnas duplicadas completas
     for (let j = 0; j < c; j++) {
-      let colJ = tempBoard.map(row => row[j]);
+      let colJ = b.map(row => row[j]);
       if (!colArr.includes("") && arraysEqual(colJ, colArr)) return false;
     }
 
@@ -111,38 +107,53 @@ function generateValidBoard() {
   }
 
   backtrack(0, 0);
-  return tempBoard;
+  return b;
 }
 
-function maskBoard(full, cluesCount = Math.floor(size * size * 0.5)) {
-  let masked = full.map(row => row.slice());
-  let cells = [];
-  for (let i = 0; i < size; i++)
-    for (let j = 0; j < size; j++)
-      cells.push([i, j]);
+function generateConstraints() {
+  constraints = Array.from({ length: size }, () => Array(size).fill(null));
 
-  shuffleArray(cells);
-  let toRemove = size * size - cluesCount;
-  for (let i = 0; i < toRemove; i++) {
-    const [r, c] = cells[i];
-    masked[r][c] = "";
+  // Añadimos restricciones aleatorias
+  let numConstraints = Math.floor(size * size * 0.15); // 15% de casillas
+  for (let i = 0; i < numConstraints; i++) {
+    let r1 = Math.floor(Math.random() * size);
+    let c1 = Math.floor(Math.random() * size);
+    let r2 = Math.floor(Math.random() * size);
+    let c2 = Math.floor(Math.random() * size);
+    if (r1 === r2 && c1 === c2) continue;
+    constraints[r1][c1] = { type: Math.random() < 0.5 ? "=" : "x", target: [r2, c2] };
+  }
+}
+
+function maskBoard(board) {
+  let masked = board.map(r => r.slice());
+  let cellsToHide = Math.floor(size * size * 0.6);
+  while (cellsToHide > 0) {
+    let r = Math.floor(Math.random() * size);
+    let c = Math.floor(Math.random() * size);
+    if (masked[r][c] !== "") {
+      masked[r][c] = "";
+      cellsToHide--;
+    }
   }
   return masked;
 }
 
 function newGame() {
   fullBoard = generateValidBoard();
-  console.table(fullBoard); // Debug
+  generateConstraints();
   board = maskBoard(fullBoard);
   initialBoard = board.map(r => r.slice());
   drawBoard();
 }
 
+// =========================
+// Dibujo del tablero
+// =========================
+
 function drawBoard() {
   const boardDiv = document.getElementById('board');
   boardDiv.innerHTML = "";
-
-  // Asegura el grid correcto
   boardDiv.style.display = "grid";
   boardDiv.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
   boardDiv.style.gridTemplateRows = `repeat(${size}, 1fr)`;
@@ -157,7 +168,10 @@ function drawBoard() {
       const val = board[i][j];
       cell.textContent = val === "" ? "" : val;
 
-      if (initialBoard[i][j] !== "") {
+      if (constraints[i][j]) {
+        cell.textContent = constraints[i][j].type;
+        cell.classList.add('constraint');
+      } else if (initialBoard[i][j] !== "") {
         cell.classList.add('fixed');
       } else {
         cell.addEventListener('click', () => {
@@ -171,7 +185,7 @@ function drawBoard() {
             next = "";
           }
           board[i][j] = next;
-          cell.textContent = next === "" ? "" : next;
+          drawBoard();
         });
       }
 
@@ -196,35 +210,8 @@ function arraysEqual(a, b) {
 }
 
 // =========================
-// Pista y comprobación
+// Pistas y comprobación
 // =========================
-
-function checkAllRules(board) {
-  const n = board.length;
-
-  for (let i = 0; i < n; i++) {
-    const row = board[i];
-    const col = board.map(r => r[i]);
-
-    if (!isValidLine(row) || !isValidLine(col)) return false;
-
-    for (let j = i + 1; j < n; j++) {
-      if (arraysEqual(row, board[j])) return false;
-      const colJ = board.map(r => r[j]);
-      if (arraysEqual(col, colJ)) return false;
-    }
-  }
-  return true;
-}
-
-function isValidLine(line) {
-  for (let i = 0; i < line.length - 2; i++) {
-    if (line[i] === line[i + 1] && line[i] === line[i + 2]) return false;
-  }
-  const count0 = line.filter(x => x === 0).length;
-  const count1 = line.filter(x => x === 1).length;
-  return count0 === count1;
-}
 
 function showHint() {
   for (let i = 0; i < size; i++) {
@@ -240,21 +227,46 @@ function showHint() {
 }
 
 function checkSolution() {
-  for (let i = 0; i < size; i++)
-    for (let j = 0; j < size; j++)
-      if (parseInt(board[i][j]) !== fullBoard[i][j]) {
-        alert("❌ Hay errores en el tablero.");
-        return;
-      }
+  let errors = [];
 
-  if (!checkAllRules(board)) {
-    alert("❌ El tablero no cumple todas las reglas de Binairo.");
-    return;
+  // Comprobación valores
+  for (let i = 0; i < size; i++) {
+    for (let j = 0; j < size; j++) {
+      if (parseInt(board[i][j]) !== fullBoard[i][j]) {
+        errors.push([i, j]);
+      }
+    }
   }
 
-  document.getElementById('game').style.display = 'none';
-  document.getElementById('menu-finish').style.display = 'block';
-  if (timerInterval) clearInterval(timerInterval);
+  // Comprobación restricciones
+  for (let i = 0; i < size; i++) {
+    for (let j = 0; j < size; j++) {
+      if (constraints[i][j]) {
+        let [tr, tc] = constraints[i][j].target;
+        if (constraints[i][j].type === "=" && board[i][j] !== board[tr][tc]) {
+          errors.push([i, j], [tr, tc]);
+        }
+        if (constraints[i][j].type === "x" && board[i][j] === board[tr][tc]) {
+          errors.push([i, j], [tr, tc]);
+        }
+      }
+    }
+  }
+
+  // Marcar errores
+  document.querySelectorAll('.cell').forEach(cell => cell.classList.remove('error'));
+  errors.forEach(([r, c]) => {
+    const cell = document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
+    if (cell) cell.classList.add('error');
+  });
+
+  if (errors.length === 0) {
+    document.getElementById('game').style.display = 'none';
+    document.getElementById('menu-finish').style.display = 'block';
+    if (timerInterval) clearInterval(timerInterval);
+  } else {
+    alert("❌ Hay errores en el tablero.");
+  }
 }
 
 // =========================
@@ -283,5 +295,3 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   document.getElementById('btn-replay-no').onclick = backToMenu;
 });
-
-
