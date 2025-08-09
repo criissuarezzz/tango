@@ -60,7 +60,7 @@ function generateValidBoard() {
   let board = Array.from({ length: size }, () => Array(size).fill(""));
 
   function backtrack(row, col) {
-    if (row === size) return true;
+    if (row === size) return true; // tablero completo
     let nextRow = col === size - 1 ? row + 1 : row;
     let nextCol = col === size - 1 ? 0 : col + 1;
 
@@ -69,7 +69,6 @@ function generateValidBoard() {
     for (let num of nums) {
       board[row][col] = num;
 
-      // Reglas parciales: no más de dos iguales seguidos y equilibrio parcial
       if (isValidPartial(row, col)) {
         if (backtrack(nextRow, nextCol)) return true;
       }
@@ -92,7 +91,7 @@ function generateValidBoard() {
       if (colArr[i] !== "" && colArr[i] === colArr[i + 1] && colArr[i] === colArr[i + 2]) return false;
     }
 
-    // Equilibrio (máximo la mitad por ahora)
+    // Equilibrio parcial (máximo la mitad)
     if (rowArr.filter(x => x === 0).length > size / 2) return false;
     if (rowArr.filter(x => x === 1).length > size / 2) return false;
     if (colArr.filter(x => x === 0).length > size / 2) return false;
@@ -114,54 +113,10 @@ function generateValidBoard() {
   backtrack(0, 0);
   return board;
 }
-function isValidLine(line) {
-  // No más de dos iguales seguidos
-  for (let i = 0; i < line.length - 2; i++) {
-    if (line[i] === line[i + 1] && line[i] === line[i + 2]) return false;
-  }
-  // Número equilibrado
-  const count0 = line.filter(x => x === 0).length;
-  const count1 = line.filter(x => x === 1).length;
-  return count0 === count1;
-}
-
-function checkAllRules(board) {
-  const n = board.length;
-
-  for (let i = 0; i < n; i++) {
-    const row = board[i];
-    const col = board.map(r => r[i]);
-
-    if (!isValidLine(row) || !isValidLine(col)) return false;
-
-    for (let j = i + 1; j < n; j++) {
-      if (arraysEqual(row, board[j])) return false;
-      const colJ = board.map(r => r[j]);
-      if (arraysEqual(col, colJ)) return false;
-    }
-  }
-  return true;
-}
-
-function maskBoard(full, cluesCount = Math.floor(size * size * 0.5)) {
-  let masked = full.map(row => row.slice());
-  let cells = [];
-  for (let i = 0; i < size; i++)
-    for (let j = 0; j < size; j++)
-      cells.push([i, j]);
-
-  shuffleArray(cells);
-  let toRemove = size * size - cluesCount;
-  for (let i = 0; i < toRemove; i++) {
-    const [r, c] = cells[i];
-    masked[r][c] = "";
-  }
-  return masked;
-}
 
 function newGame() {
   fullBoard = generateValidBoard();
-  console.table(fullBoard); // 👈 Debug
+  console.table(fullBoard); // Debug
   board = maskBoard(fullBoard);
   initialBoard = board.map(r => r.slice());
   drawBoard();
@@ -283,6 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   document.getElementById('btn-replay-no').onclick = backToMenu;
 });
+
 
 
 
