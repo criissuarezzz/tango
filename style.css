@@ -58,8 +58,21 @@ button {
   cursor: default;
 }
 
+.constraint {
+  background: #f0efeb;
+  cursor: default;
+  color: #555;
+  font-weight: bold;
+  font-size: 1.4em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .error {
-  background: #f08080 !important;
+  background-color: #f08080 !important;
+  color: white !important;
+  font-weight: bold;
 }
 
 .hint {
@@ -106,5 +119,6 @@ button {
   right: 10px;
   z-index: 1000;
 }
+
 
 
