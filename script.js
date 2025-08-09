@@ -130,7 +130,11 @@ function newGame() {
 function drawBoard() {
   const boardDiv = document.getElementById('board');
   boardDiv.innerHTML = "";
-  boardDiv.style.setProperty('--grid-size', size); // Establece el tamaño del grid
+
+  // Asegura el grid correcto
+  boardDiv.style.display = "grid";
+  boardDiv.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+  boardDiv.style.gridTemplateRows = `repeat(${size}, 1fr)`;
 
   for (let i = 0; i < size; i++) {
     for (let j = 0; j < size; j++) {
@@ -147,7 +151,14 @@ function drawBoard() {
       } else {
         cell.addEventListener('click', () => {
           const current = board[i][j];
-          const next = current === "" ? 0 : current === 0 ? 1 : "";
+          let next;
+          if (current === "" || current === null) {
+            next = 0;
+          } else if (current === 0 || current === "0") {
+            next = 1;
+          } else {
+            next = "";
+          }
           board[i][j] = next;
           cell.textContent = next === "" ? "" : next;
         });
@@ -233,6 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   document.getElementById('btn-replay-no').onclick = backToMenu;
 });
+
 
 
 
