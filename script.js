@@ -176,41 +176,65 @@ function newGame() {
 function drawBoard() {
   const boardDiv = document.getElementById('board');
   boardDiv.innerHTML = "";
+  const gridSize = 2 * size - 1;
   boardDiv.style.display = "grid";
-  boardDiv.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
-  boardDiv.style.gridTemplateRows = `repeat(${size}, 1fr)`;
+  boardDiv.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+  boardDiv.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
 
-  for (let i = 0; i < size; i++) {
-    for (let j = 0; j < size; j++) {
+  for (let r = 0; r < gridSize; r++) {
+    for (let c = 0; c < gridSize; c++) {
       const cell = document.createElement('div');
-      cell.className = 'cell';
-      cell.dataset.row = i;
-      cell.dataset.col = j;
+      cell.classList.add('cell');
 
-      if (constraints[i][j]) {
-        cell.textContent = constraints[i][j].type;
-        cell.classList.add('constraint');
-      } else {
+      if (r % 2 === 0 && c % 2 === 0) {
+        // Casilla con valor
+        const i = r / 2;
+        const j = c / 2;
+        cell.dataset.row = i;
+        cell.dataset.col = j;
+
         const val = board[i][j];
         cell.textContent = val === "" ? "" : val;
+
         if (initialBoard[i][j] !== "") {
           cell.classList.add('fixed');
+          cell.style.cursor = 'default';
         } else {
           cell.style.cursor = 'pointer';
           cell.addEventListener('click', () => {
             const current = board[i][j];
             let next;
-            if (current === "" || current === null) {
-              next = 0;
-            } else if (current === 0 || current === "0") {
-              next = 1;
-            } else {
-              next = "";
-            }
+            if (current === "" || current === null) next = 0;
+            else if (current === 0 || current === "0") next = 1;
+            else next = "";
             board[i][j] = next;
             drawBoard();
           });
         }
+      } else if (r % 2 === 0 && c % 2 === 1) {
+        // Restricción horizontal entre casillas (r/2, (c-1)/2) y (r/2, (c+1)/2)
+        const i = r / 2;
+        const j = (c - 1) / 2;
+        const cons = constraintsHorizontal?.[i]?.[j] || null;
+        cell.classList.add('constraint');
+        cell.textContent = cons || "";
+        if (cons === "=") cell.style.color = "green";
+        else if (cons === "x") cell.style.color = "red";
+        else cell.style.color = "transparent";
+      } else if (r % 2 === 1 && c % 2 === 0) {
+        // Restricción vertical entre casillas ((r-1)/2, c/2) y ((r+1)/2, c/2)
+        const i = (r - 1) / 2;
+        const j = c / 2;
+        const cons = constraintsVertical?.[i]?.[j] || null;
+        cell.classList.add('constraint');
+        cell.textContent = cons || "";
+        if (cons === "=") cell.style.color = "green";
+        else if (cons === "x") cell.style.color = "red";
+        else cell.style.color = "transparent";
+      } else {
+        // Intersección (esquina entre restricciones), puede quedar vacía
+        cell.textContent = "";
+        cell.style.backgroundColor = "#f0f0f0";
       }
 
       boardDiv.appendChild(cell);
@@ -319,3 +343,4 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   document.getElementById('btn-replay-no').onclick = backToMenu;
 });
+
