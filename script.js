@@ -155,8 +155,8 @@ function drawBoard() {
   const boardDiv = document.getElementById('board');
   boardDiv.innerHTML = "";
   boardDiv.style.display = "grid";
-  boardDiv.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
-  boardDiv.style.gridTemplateRows = `repeat(${size}, 1fr)`;
+  boardDiv.style.gridTemplateColumns = `repeat(${size}, 40px)`;
+  boardDiv.style.gridTemplateRows = `repeat(${size}, 40px)`;
 
   for (let i = 0; i < size; i++) {
     for (let j = 0; j < size; j++) {
@@ -165,32 +165,84 @@ function drawBoard() {
       cell.dataset.row = i;
       cell.dataset.col = j;
 
-      const val = board[i][j];
-      cell.textContent = val === "" ? "" : val;
-
       if (constraints[i][j]) {
-        cell.textContent = constraints[i][j].type;
+        // Mostrar el símbolo = o x con estilo
+        const span = document.createElement('span');
+        span.textContent = constraints[i][j].type;
+        span.className = 'constraint-symbol';
+        cell.appendChild(span);
         cell.classList.add('constraint');
-      } else if (initialBoard[i][j] !== "") {
-        cell.classList.add('fixed');
+        // No poner evento click en restricciones
       } else {
-        cell.addEventListener('click', () => {
-          const current = board[i][j];
-          let next;
-          if (current === "" || current === null) {
-            next = 0;
-          } else if (current === 0 || current === "0") {
-            next = 1;
-          } else {
-            next = "";
-          }
-          board[i][j] = next;
-          drawBoard();
-        });
-      }
+        const val = board[i][j];
+        cell.textContent = val === "" ? "" : val;
 
+        if (initialBoard[i][j] !== "") {
+          cell.classList.add('fixed');
+        } else {
+          cell.addEventListener('click', () => {
+            const current = board[i][j];
+            let next;
+            if (current === "" || current === null) {
+              next = 0;
+            } else if (current === 0 || current === "0") {
+              next = 1;
+            } else {
+              next = "";
+            }
+            board[i][j] = next;
+            drawBoard();
+          });
+        }
+      }
       boardDiv.appendChild(cell);
     }
+  }
+}
+
+function checkSolution() {
+  let errors = new Set();
+
+  // Comprobación valores
+  for (let i = 0; i < size; i++) {
+    for (let j = 0; j < size; j++) {
+      if (parseInt(board[i][j]) !== fullBoard[i][j]) {
+        errors.add(`${i},${j}`);
+      }
+    }
+  }
+
+  // Comprobación restricciones
+  for (let i = 0; i < size; i++) {
+    for (let j = 0; j < size; j++) {
+      if (constraints[i][j]) {
+        let [tr, tc] = constraints[i][j].target;
+        if (constraints[i][j].type === "=" && board[i][j] !== board[tr][tc]) {
+          errors.add(`${i},${j}`);
+          errors.add(`${tr},${tc}`);
+        }
+        if (constraints[i][j].type === "x" && board[i][j] === board[tr][tc]) {
+          errors.add(`${i},${j}`);
+          errors.add(`${tr},${tc}`);
+        }
+      }
+    }
+  }
+
+  // Marcar errores
+  document.querySelectorAll('.cell').forEach(cell => cell.classList.remove('error'));
+  errors.forEach(coord => {
+    const [r, c] = coord.split(',').map(Number);
+    const cell = document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
+    if (cell) cell.classList.add('error');
+  });
+
+  if (errors.size === 0) {
+    document.getElementById('game').style.display = 'none';
+    document.getElementById('menu-finish').style.display = 'block';
+    if (timerInterval) clearInterval(timerInterval);
+  } else {
+    alert("❌ Hay errores en el tablero.");
   }
 }
 
@@ -226,48 +278,6 @@ function showHint() {
   alert("No hay más pistas disponibles.");
 }
 
-function checkSolution() {
-  let errors = [];
-
-  // Comprobación valores
-  for (let i = 0; i < size; i++) {
-    for (let j = 0; j < size; j++) {
-      if (parseInt(board[i][j]) !== fullBoard[i][j]) {
-        errors.push([i, j]);
-      }
-    }
-  }
-
-  // Comprobación restricciones
-  for (let i = 0; i < size; i++) {
-    for (let j = 0; j < size; j++) {
-      if (constraints[i][j]) {
-        let [tr, tc] = constraints[i][j].target;
-        if (constraints[i][j].type === "=" && board[i][j] !== board[tr][tc]) {
-          errors.push([i, j], [tr, tc]);
-        }
-        if (constraints[i][j].type === "x" && board[i][j] === board[tr][tc]) {
-          errors.push([i, j], [tr, tc]);
-        }
-      }
-    }
-  }
-
-  // Marcar errores
-  document.querySelectorAll('.cell').forEach(cell => cell.classList.remove('error'));
-  errors.forEach(([r, c]) => {
-    const cell = document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
-    if (cell) cell.classList.add('error');
-  });
-
-  if (errors.length === 0) {
-    document.getElementById('game').style.display = 'none';
-    document.getElementById('menu-finish').style.display = 'block';
-    if (timerInterval) clearInterval(timerInterval);
-  } else {
-    alert("❌ Hay errores en el tablero.");
-  }
-}
 
 // =========================
 // Eventos del menú
@@ -295,3 +305,4 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   document.getElementById('btn-replay-no').onclick = backToMenu;
 });
+
