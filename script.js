@@ -57,7 +57,7 @@ function selectLevel(n) {
 // =========================
 
 function generateValidBoard() {
-  let board = Array.from({ length: size }, () => Array(size).fill(""));
+  let tempBoard = Array.from({ length: size }, () => Array(size).fill(""));
 
   function backtrack(row, col) {
     if (row === size) return true; // tablero completo
@@ -67,20 +67,20 @@ function generateValidBoard() {
     let nums = [0, 1];
     shuffleArray(nums);
     for (let num of nums) {
-      board[row][col] = num;
+      tempBoard[row][col] = num;
 
       if (isValidPartial(row, col)) {
         if (backtrack(nextRow, nextCol)) return true;
       }
     }
 
-    board[row][col] = "";
+    tempBoard[row][col] = "";
     return false;
   }
 
   function isValidPartial(r, c) {
-    let rowArr = board[r];
-    let colArr = board.map(row => row[c]);
+    let rowArr = tempBoard[r];
+    let colArr = tempBoard.map(row => row[c]);
 
     // No más de dos iguales seguidos en fila
     for (let i = 0; i < size - 2; i++) {
@@ -91,7 +91,7 @@ function generateValidBoard() {
       if (colArr[i] !== "" && colArr[i] === colArr[i + 1] && colArr[i] === colArr[i + 2]) return false;
     }
 
-    // Equilibrio parcial (máximo la mitad)
+    // Equilibrio parcial
     if (rowArr.filter(x => x === 0).length > size / 2) return false;
     if (rowArr.filter(x => x === 1).length > size / 2) return false;
     if (colArr.filter(x => x === 0).length > size / 2) return false;
@@ -99,11 +99,11 @@ function generateValidBoard() {
 
     // Filas duplicadas completas
     for (let i = 0; i < r; i++) {
-      if (!rowArr.includes("") && arraysEqual(board[i], rowArr)) return false;
+      if (!rowArr.includes("") && arraysEqual(tempBoard[i], rowArr)) return false;
     }
     // Columnas duplicadas completas
     for (let j = 0; j < c; j++) {
-      let colJ = board.map(row => row[j]);
+      let colJ = tempBoard.map(row => row[j]);
       if (!colArr.includes("") && arraysEqual(colJ, colArr)) return false;
     }
 
@@ -111,7 +111,23 @@ function generateValidBoard() {
   }
 
   backtrack(0, 0);
-  return board;
+  return tempBoard;
+}
+
+function maskBoard(full, cluesCount = Math.floor(size * size * 0.5)) {
+  let masked = full.map(row => row.slice());
+  let cells = [];
+  for (let i = 0; i < size; i++)
+    for (let j = 0; j < size; j++)
+      cells.push([i, j]);
+
+  shuffleArray(cells);
+  let toRemove = size * size - cluesCount;
+  for (let i = 0; i < toRemove; i++) {
+    const [r, c] = cells[i];
+    masked[r][c] = "";
+  }
+  return masked;
 }
 
 function newGame() {
@@ -121,6 +137,7 @@ function newGame() {
   initialBoard = board.map(r => r.slice());
   drawBoard();
 }
+
 function drawBoard() {
   const boardDiv = document.getElementById('board');
   boardDiv.innerHTML = "";
@@ -162,6 +179,7 @@ function drawBoard() {
     }
   }
 }
+
 // =========================
 // Utilidades
 // =========================
@@ -180,6 +198,33 @@ function arraysEqual(a, b) {
 // =========================
 // Pista y comprobación
 // =========================
+
+function checkAllRules(board) {
+  const n = board.length;
+
+  for (let i = 0; i < n; i++) {
+    const row = board[i];
+    const col = board.map(r => r[i]);
+
+    if (!isValidLine(row) || !isValidLine(col)) return false;
+
+    for (let j = i + 1; j < n; j++) {
+      if (arraysEqual(row, board[j])) return false;
+      const colJ = board.map(r => r[j]);
+      if (arraysEqual(col, colJ)) return false;
+    }
+  }
+  return true;
+}
+
+function isValidLine(line) {
+  for (let i = 0; i < line.length - 2; i++) {
+    if (line[i] === line[i + 1] && line[i] === line[i + 2]) return false;
+  }
+  const count0 = line.filter(x => x === 0).length;
+  const count1 = line.filter(x => x === 1).length;
+  return count0 === count1;
+}
 
 function showHint() {
   for (let i = 0; i < size; i++) {
@@ -238,11 +283,5 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   document.getElementById('btn-replay-no').onclick = backToMenu;
 });
-
-
-
-
-
-
 
 
