@@ -293,40 +293,61 @@ function showHint() {
 }
 
 function checkSolution() {
-  let errors = [];
+  const errorSet = new Set();
 
-  // Comprobación valores
+  // 1) errores de valor (comparar con fullBoard)
   for (let i = 0; i < size; i++) {
     for (let j = 0; j < size; j++) {
-      if (parseInt(board[i][j]) !== fullBoard[i][j]) {
-        errors.push([i, j]);
+      const val = parseInt(board[i][j]);
+      if (isNaN(val) || val !== fullBoard[i][j]) {
+        errorSet.add(`${i},${j}`);
       }
     }
   }
 
-  // Comprobación restricciones
+  // 2) restricciones horizontales
   for (let i = 0; i < size; i++) {
-    for (let j = 0; j < size; j++) {
-      if (constraints[i][j]) {
-        let [tr, tc] = constraints[i][j].target;
-        if (constraints[i][j].type === "=" && board[i][j] !== board[tr][tc]) {
-          errors.push([i, j], [tr, tc]);
-        }
-        if (constraints[i][j].type === "x" && board[i][j] === board[tr][tc]) {
-          errors.push([i, j], [tr, tc]);
-        }
+    for (let j = 0; j < size - 1; j++) {
+      const cons = constraintsHorizontal?.[i]?.[j];
+      if (!cons) continue;
+      const a = parseInt(board[i][j]);
+      const b = parseInt(board[i][j + 1]);
+      if (isNaN(a) || isNaN(b)) {
+        errorSet.add(`${i},${j}`); errorSet.add(`${i},${j+1}`);
+      } else if (cons === "=" && a !== b) {
+        errorSet.add(`${i},${j}`); errorSet.add(`${i},${j+1}`);
+      } else if (cons === "x" && a === b) {
+        errorSet.add(`${i},${j}`); errorSet.add(`${i},${j+1}`);
       }
     }
   }
 
-  // Marcar errores
+  // 3) restricciones verticales
+  for (let i = 0; i < size - 1; i++) {
+    for (let j = 0; j < size; j++) {
+      const cons = constraintsVertical?.[i]?.[j];
+      if (!cons) continue;
+      const a = parseInt(board[i][j]);
+      const b = parseInt(board[i + 1][j]);
+      if (isNaN(a) || isNaN(b)) {
+        errorSet.add(`${i},${j}`); errorSet.add(`${i+1},${j}`);
+      } else if (cons === "=" && a !== b) {
+        errorSet.add(`${i},${j}`); errorSet.add(`${i+1},${j}`);
+      } else if (cons === "x" && a === b) {
+        errorSet.add(`${i},${j}`); errorSet.add(`${i+1},${j}`);
+      }
+    }
+  }
+
+  // limpiar marcas previas y marcar errores actuales
   document.querySelectorAll('.cell').forEach(cell => cell.classList.remove('error'));
-  errors.forEach(([r, c]) => {
+  errorSet.forEach(key => {
+    const [r, c] = key.split(',').map(Number);
     const cell = document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
     if (cell) cell.classList.add('error');
   });
 
-  if (errors.length === 0) {
+  if (errorSet.size === 0) {
     document.getElementById('game').style.display = 'none';
     document.getElementById('menu-finish').style.display = 'block';
     if (timerInterval) clearInterval(timerInterval);
@@ -334,6 +355,7 @@ function checkSolution() {
     alert("❌ Hay errores en el tablero.");
   }
 }
+
 
 // =========================
 // Eventos del menú
@@ -361,6 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   document.getElementById('btn-replay-no').onclick = backToMenu;
 });
+
 
 
 
