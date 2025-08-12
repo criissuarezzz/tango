@@ -33,24 +33,33 @@ button {
   background: #43aa8b;
 }
 
+/* ==== Tablero responsive ==== */
 #board {
   display: grid;
   gap: 4px;
-  margin: 10px;
+  margin: 10px auto;
   justify-content: center;
+  width: 100vw;          /* ocupa ancho de pantalla */
+  max-width: 95vmin;     /* limita para que quepa en vertical y horizontal */
+  aspect-ratio: 1 / 1;   /* tablero siempre cuadrado */
+  touch-action: manipulation;
+  box-sizing: border-box;
 }
 
+/* ==== Casillas adaptativas ==== */
 .cell {
-  width: 40px;
-  height: 40px;
+  aspect-ratio: 1 / 1;   /* siempre cuadradas */
+  width: 100%;
+  height: auto;
   background: #d8e2dc;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2em;
+  font-size: clamp(12px, 6vw, 28px); /* escala auto según pantalla */
   border-radius: 5px;
   cursor: pointer;
   position: relative;
+  box-sizing: border-box;
 }
 
 .fixed {
@@ -63,7 +72,7 @@ button {
   cursor: default;
   color: #555;
   font-weight: bold;
-  font-size: 1.4em;
+  font-size: clamp(10px, 4vw, 20px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -86,6 +95,7 @@ button {
   top: 50%;
   transform: translateY(-50%);
 }
+
 .hint.V {
   bottom: -5px;
   left: 50%;
@@ -98,7 +108,6 @@ button {
   color: #6c757d;
 }
 
-
 .counter {
   display: flex;
   align-items: center;
@@ -108,11 +117,12 @@ button {
 }
 
 .counter.error {
-  background-color: #f08080; /* rojo suave */
+  background-color: #f08080;
   color: white;
   font-weight: bold;
 }
 
+/* Botones de zoom fijos */
 #zoom-controls {
   position: fixed;
   top: 10px;
@@ -120,6 +130,9 @@ button {
   z-index: 1000;
 }
 
-
-
-
+/* ==== Ajustes para pantallas grandes ==== */
+@media (min-width: 768px) {
+  #board {
+    max-width: 600px; /* tamaño máximo en escritorio */
+  }
+}
