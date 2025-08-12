@@ -5,7 +5,6 @@ let initialBoard = [];
 let constraintsHorizontal = [];
 let constraintsVertical = [];
 
-let constraints = []; // Matriz con restricciones "=" o "x"
 let timerInterval = null;
 let timerSeconds = 0;
 let useTimer = false;
@@ -105,17 +104,16 @@ function generateValidBoard() {
         return false;
     }
 
-    // No más de la mitad iguales (0 o 1) en fila o columna
+    // No más de la mitad iguales por fila o columna
     if (rowArr.filter(x => x === 0).length > size / 2) return false;
     if (rowArr.filter(x => x === 1).length > size / 2) return false;
     if (colArr.filter(x => x === 0).length > size / 2) return false;
     if (colArr.filter(x => x === 1).length > size / 2) return false;
 
-    // Filas duplicadas completas
+    // Revisar duplicados completos
     for (let i = 0; i < r; i++) {
       if (!rowArr.includes("") && arraysEqual(b[i], rowArr)) return false;
     }
-    // Columnas duplicadas completas
     for (let j = 0; j < c; j++) {
       let colJ = b.map(row => row[j]);
       if (!colArr.includes("") && arraysEqual(colJ, colArr)) return false;
@@ -128,11 +126,8 @@ function generateValidBoard() {
   return b;
 }
 
-
 function generateConstraints() {
-  // horizontal: size x (size-1)
   constraintsHorizontal = Array.from({ length: size }, () => Array(size - 1).fill(null));
-  // vertical: (size-1) x size
   constraintsVertical = Array.from({ length: size - 1 }, () => Array(size).fill(null));
 
   let attempts = 0;
@@ -149,7 +144,6 @@ function generateConstraints() {
       const c = Math.floor(Math.random() * (size - 1));
       if (constraintsHorizontal[r][c] !== null) continue;
 
-      // la restricción debe coincidir con fullBoard
       constraintsHorizontal[r][c] = (fullBoard[r][c] === fullBoard[r][c + 1]) ? "=" : "x";
       added++;
     } else {
@@ -162,8 +156,6 @@ function generateConstraints() {
     }
   }
 }
-
-
 
 function maskBoard(board) {
   let masked = board.map(r => r.slice());
@@ -205,7 +197,6 @@ function drawBoard() {
       cell.classList.add('cell');
 
       if (r % 2 === 0 && c % 2 === 0) {
-        // Casilla con valor
         const i = r / 2;
         const j = c / 2;
         cell.dataset.row = i;
@@ -223,14 +214,13 @@ function drawBoard() {
             const current = board[i][j];
             let next;
             if (current === "" || current === null) next = 0;
-            else if (current === 0 || current === "0") next = 1;
+            else if (current == 0) next = 1;
             else next = "";
             board[i][j] = next;
             drawBoard();
           });
         }
       } else if (r % 2 === 0 && c % 2 === 1) {
-        // Restricción horizontal entre casillas (r/2, (c-1)/2) y (r/2, (c+1)/2)
         const i = r / 2;
         const j = (c - 1) / 2;
         const cons = constraintsHorizontal?.[i]?.[j] || null;
@@ -240,7 +230,6 @@ function drawBoard() {
         else if (cons === "x") cell.style.color = "red";
         else cell.style.color = "transparent";
       } else if (r % 2 === 1 && c % 2 === 0) {
-        // Restricción vertical entre casillas ((r-1)/2, c/2) y ((r+1)/2, c/2)
         const i = (r - 1) / 2;
         const j = c / 2;
         const cons = constraintsVertical?.[i]?.[j] || null;
@@ -250,7 +239,6 @@ function drawBoard() {
         else if (cons === "x") cell.style.color = "red";
         else cell.style.color = "transparent";
       } else {
-        // Intersección (esquina entre restricciones), puede quedar vacía
         cell.textContent = "";
         cell.style.backgroundColor = "#f0f0f0";
       }
@@ -293,28 +281,31 @@ function showHint() {
 }
 
 function checkSolution() {
+  console.log("Botón comprobar clicado");
   const errorSet = new Set();
+  let allFilled = true;
 
-  // 1) errores de valor (comparar con fullBoard)
   for (let i = 0; i < size; i++) {
     for (let j = 0; j < size; j++) {
-      const val = parseInt(board[i][j]);
-      if (isNaN(val) || val !== fullBoard[i][j]) {
+      const val = Number(board[i][j]);
+      if (isNaN(val)) {
+        allFilled = false;
+      }
+      if (!isNaN(val) && val !== fullBoard[i][j]) {
         errorSet.add(`${i},${j}`);
       }
     }
   }
 
-  // 2) restricciones horizontales
+  // restricciones horizontales
   for (let i = 0; i < size; i++) {
     for (let j = 0; j < size - 1; j++) {
       const cons = constraintsHorizontal?.[i]?.[j];
       if (!cons) continue;
-      const a = parseInt(board[i][j]);
-      const b = parseInt(board[i][j + 1]);
-      if (isNaN(a) || isNaN(b)) {
-        errorSet.add(`${i},${j}`); errorSet.add(`${i},${j+1}`);
-      } else if (cons === "=" && a !== b) {
+      const a = Number(board[i][j]);
+      const b = Number(board[i][j + 1]);
+      if (isNaN(a) || isNaN(b)) continue;
+      if (cons === "=" && a !== b) {
         errorSet.add(`${i},${j}`); errorSet.add(`${i},${j+1}`);
       } else if (cons === "x" && a === b) {
         errorSet.add(`${i},${j}`); errorSet.add(`${i},${j+1}`);
@@ -322,16 +313,15 @@ function checkSolution() {
     }
   }
 
-  // 3) restricciones verticales
+  // restricciones verticales
   for (let i = 0; i < size - 1; i++) {
     for (let j = 0; j < size; j++) {
       const cons = constraintsVertical?.[i]?.[j];
       if (!cons) continue;
-      const a = parseInt(board[i][j]);
-      const b = parseInt(board[i + 1][j]);
-      if (isNaN(a) || isNaN(b)) {
-        errorSet.add(`${i},${j}`); errorSet.add(`${i+1},${j}`);
-      } else if (cons === "=" && a !== b) {
+      const a = Number(board[i][j]);
+      const b = Number(board[i + 1][j]);
+      if (isNaN(a) || isNaN(b)) continue;
+      if (cons === "=" && a !== b) {
         errorSet.add(`${i},${j}`); errorSet.add(`${i+1},${j}`);
       } else if (cons === "x" && a === b) {
         errorSet.add(`${i},${j}`); errorSet.add(`${i+1},${j}`);
@@ -339,7 +329,6 @@ function checkSolution() {
     }
   }
 
-  // limpiar marcas previas y marcar errores actuales
   document.querySelectorAll('.cell').forEach(cell => cell.classList.remove('error'));
   errorSet.forEach(key => {
     const [r, c] = key.split(',').map(Number);
@@ -347,15 +336,16 @@ function checkSolution() {
     if (cell) cell.classList.add('error');
   });
 
-  if (errorSet.size === 0) {
+  if (errorSet.size === 0 && allFilled) {
     document.getElementById('game').style.display = 'none';
     document.getElementById('menu-finish').style.display = 'block';
     if (timerInterval) clearInterval(timerInterval);
+  } else if (!allFilled) {
+    alert("⚠️ El tablero no está completo.");
   } else {
     alert("❌ Hay errores en el tablero.");
   }
 }
-
 
 // =========================
 // Eventos del menú
@@ -381,13 +371,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('game').style.display = 'block';
     newGame();
   };
-  const btnCheck = document.getElementById('btn-check');
-  btnCheck.addEventListener('click', checkSolution);
+  document.getElementById('btn-check').addEventListener('click', checkSolution);
   document.getElementById('btn-replay-no').onclick = backToMenu;
-  
 });
-
-
-
-
-
