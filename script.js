@@ -2,6 +2,9 @@ let size = 6;
 let fullBoard = [];
 let board = [];
 let initialBoard = [];
+let constraintsHorizontal = [];
+let constraintsVertical = [];
+
 let constraints = []; // Matriz con restricciones "=" o "x"
 let timerInterval = null;
 let timerSeconds = 0;
@@ -125,27 +128,36 @@ function generateValidBoard() {
   return b;
 }
 
+
 function generateConstraints() {
-  constraints = Array.from({ length: size }, () => Array(size).fill(null));
+  constraintsHorizontal = Array.from({ length: size }, () => Array(size - 1).fill(null));
+  constraintsVertical = Array.from({ length: size - 1 }, () => Array(size).fill(null));
 
-  let attempts = 0;
-  let maxAttempts = size * size * 10; // Evitar bucle infinito
-  let numConstraints = Math.floor(size * size * 0.15); // 15% casillas con restricción
+  let numConstraints = Math.floor(size * size * 0.15);
   let added = 0;
+  let attempts = 0;
 
-  while (added < numConstraints && attempts < maxAttempts) {
+  while (added < numConstraints && attempts < size * size * 10) {
     attempts++;
-    let r1 = Math.floor(Math.random() * size);
-    let c1 = Math.floor(Math.random() * size);
-    let r2 = Math.floor(Math.random() * size);
-    let c2 = Math.floor(Math.random() * size);
-    if (r1 === r2 && c1 === c2) continue;
-    if (constraints[r1][c1] !== null) continue; // Ya tiene restricción
-
-    constraints[r1][c1] = { type: Math.random() < 0.5 ? "=" : "x", target: [r2, c2] };
-    added++;
+    let horizontal = Math.random() < 0.5;
+    if (horizontal) {
+      let r = Math.floor(Math.random() * size);
+      let c = Math.floor(Math.random() * (size - 1));
+      if (constraintsHorizontal[r][c] === null) {
+        constraintsHorizontal[r][c] = Math.random() < 0.5 ? "=" : "x";
+        added++;
+      }
+    } else {
+      let r = Math.floor(Math.random() * (size - 1));
+      let c = Math.floor(Math.random() * size);
+      if (constraintsVertical[r][c] === null) {
+        constraintsVertical[r][c] = Math.random() < 0.5 ? "=" : "x";
+        added++;
+      }
+    }
   }
 }
+
 
 function maskBoard(board) {
   let masked = board.map(r => r.slice());
@@ -343,4 +355,5 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   document.getElementById('btn-replay-no').onclick = backToMenu;
 });
+
 
