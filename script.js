@@ -187,6 +187,13 @@ function drawBoard() {
   const boardDiv = document.getElementById('board');
   boardDiv.innerHTML = "";
   const gridSize = 2 * size - 1;
+
+  // Ajustar el tamaño del tablero según la pantalla y número total de celdas en grid (incluyendo restricciones)
+  // Ocupa el 90% del ancho del viewport dividido entre el total de columnas (gridSize)
+  const cellSizeVW = 90 / gridSize; 
+  boardDiv.style.width = `${cellSizeVW * gridSize}vw`;
+  boardDiv.style.height = boardDiv.style.width;  // para que sea cuadrado
+
   boardDiv.style.display = "grid";
   boardDiv.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
   boardDiv.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
@@ -374,3 +381,4 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-check').addEventListener('click', checkSolution);
   document.getElementById('btn-replay-no').onclick = backToMenu;
 });
+
