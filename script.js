@@ -381,8 +381,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('game').style.display = 'block';
     newGame();
   };
+  const btnCheck = document.getElementById('btn-check');
+  btnCheck.addEventListener('click', checkSolution);
   document.getElementById('btn-replay-no').onclick = backToMenu;
+  
 });
+
 
 
 
