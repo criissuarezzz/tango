@@ -130,33 +130,39 @@ function generateValidBoard() {
 
 
 function generateConstraints() {
+  // horizontal: size x (size-1)
   constraintsHorizontal = Array.from({ length: size }, () => Array(size - 1).fill(null));
+  // vertical: (size-1) x size
   constraintsVertical = Array.from({ length: size - 1 }, () => Array(size).fill(null));
 
+  let attempts = 0;
+  let maxAttempts = size * size * 20;
   let numConstraints = Math.floor(size * size * 0.15);
   let added = 0;
-  let attempts = 0;
 
-  while (added < numConstraints && attempts < size * size * 10) {
+  while (added < numConstraints && attempts < maxAttempts) {
     attempts++;
-    let horizontal = Math.random() < 0.5;
+    const horizontal = Math.random() < 0.5;
+
     if (horizontal) {
-      let r = Math.floor(Math.random() * size);
-      let c = Math.floor(Math.random() * (size - 1));
-      if (constraintsHorizontal[r][c] === null) {
-        constraintsHorizontal[r][c] = Math.random() < 0.5 ? "=" : "x";
-        added++;
-      }
+      const r = Math.floor(Math.random() * size);
+      const c = Math.floor(Math.random() * (size - 1));
+      if (constraintsHorizontal[r][c] !== null) continue;
+
+      // la restricción debe coincidir con fullBoard
+      constraintsHorizontal[r][c] = (fullBoard[r][c] === fullBoard[r][c + 1]) ? "=" : "x";
+      added++;
     } else {
-      let r = Math.floor(Math.random() * (size - 1));
-      let c = Math.floor(Math.random() * size);
-      if (constraintsVertical[r][c] === null) {
-        constraintsVertical[r][c] = Math.random() < 0.5 ? "=" : "x";
-        added++;
-      }
+      const r = Math.floor(Math.random() * (size - 1));
+      const c = Math.floor(Math.random() * size);
+      if (constraintsVertical[r][c] !== null) continue;
+
+      constraintsVertical[r][c] = (fullBoard[r][c] === fullBoard[r + 1][c]) ? "=" : "x";
+      added++;
     }
   }
 }
+
 
 
 function maskBoard(board) {
@@ -355,5 +361,6 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   document.getElementById('btn-replay-no').onclick = backToMenu;
 });
+
 
 
