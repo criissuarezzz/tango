@@ -6,7 +6,7 @@ body {
   flex-direction: column;
   align-items: center;
   margin: 0;
-  padding: 20px;
+  padding: 20px 5px;
 }
 
 h1 {
@@ -39,11 +39,23 @@ button {
   gap: 4px;
   margin: 10px auto;
   justify-content: center;
-  width: 100vw;          /* ocupa ancho de pantalla */
-  max-width: 95vmin;     /* limita para que quepa en vertical y horizontal */
-  aspect-ratio: 1 / 1;   /* tablero siempre cuadrado */
+  width: 100vmin;           /* que no supere el lado corto */
+  max-width: 100vmin;
+  max-height: 100vmin;
+  aspect-ratio: 1 / 1;  /* tablero siempre cuadrado */
   touch-action: manipulation;
   box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+  #board {
+    width: 95vw;
+    max-width: 95vw;
+    max-height: 95vw;
+  }
+  .cell {
+    font-size: clamp(10px, 5vw, 24px);
+  }
 }
 
 /* ==== Casillas adaptativas ==== */
@@ -55,7 +67,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(12px, 6vw, 28px); /* escala auto según pantalla */
+  font-size: clamp(12px, 6vmin, 28px);
   border-radius: 5px;
   cursor: pointer;
   position: relative;
@@ -131,8 +143,13 @@ button {
 }
 
 /* ==== Ajustes para pantallas grandes ==== */
-@media (min-width: 768px) {
+@media (max-width: 480px) {
   #board {
-    max-width: 600px; /* tamaño máximo en escritorio */
+    width: 95vmin;
+    max-width: 95vmin;
+    max-height: 95vmin;
+  }
+  .cell {
+    font-size: clamp(10px, 5vmin, 24px);
   }
 }
